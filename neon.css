@@ -1,0 +1,128 @@
+
+/* Challenge Modal Alert Design */
+.modal-alert-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 400px;
+  width: 90%;
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+.alert-pill {
+  background: rgba(74, 222, 128, 0.15); /* Greenish */
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.theme-red .alert-pill {
+  background: rgba(248, 113, 113, 0.15);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #f87171;
+}
+
+.neon-title {
+  font-size: 3rem;
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  color: #4ade80;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.6), 0 0 20px rgba(74, 222, 128, 0.4);
+  margin-bottom: 20px;
+  border-bottom: 4px solid #4ade80;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+.theme-red .neon-title {
+  color: #f87171;
+  text-shadow: 0 0 10px rgba(248, 113, 113, 0.6), 0 0 20px rgba(248, 113, 113, 0.4);
+  border-bottom-color: #f87171;
+}
+
+.logic-card {
+  background: #111;
+  border-radius: 12px;
+  border-left: 5px solid #4ade80;
+  width: 100%;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin-bottom: 20px;
+}
+.theme-red .logic-card {
+  border-left-color: #f87171;
+}
+
+.logic-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logic-icon {
+  font-size: 2.5rem;
+  color: #4ade80;
+}
+.theme-red .logic-icon {
+  color: #f87171;
+}
+
+.logic-meta {
+  display: flex;
+  flex-direction: column;
+}
+.logic-label {
+  font-size: 0.7rem;
+  color: #888;
+  letter-spacing: 1px;
+}
+.logic-name {
+  font-size: 1.5rem;
+  color: #fff;
+  font-weight: 700;
+  margin: 0;
+}
+
+.logic-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 15px 0;
+}
+
+.logic-desc {
+  color: #ddd;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.btn-neon {
+  background: #4ade80;
+  color: #111;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  padding: 15px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+}
+.theme-red .btn-neon {
+  background: #f87171;
+  box-shadow: 0 4px 15px rgba(248, 113, 113, 0.4);
+}
+
+.decision-timer {
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: #666;
+}

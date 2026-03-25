@@ -89,10 +89,13 @@ const els = {
   },
   modal: {
     container: document.getElementById('challenge-modal'),
-    title: document.getElementById('challenge-title'),
+    contentBox: document.getElementById('modal-alert-content'),
+    title: document.getElementById('challenge-verdict-title'),
     revealedCards: document.getElementById('revealed-cards'),
-    verdict: document.getElementById('challenge-verdict'),
-    punishment: document.getElementById('punishment-box'),
+    verdictSub: document.getElementById('challenge-sub-verdict'),
+    ruleIcon: document.getElementById('logic-rule-icon'),
+    ruleName: document.getElementById('logic-rule-name'),
+    punishment: document.getElementById('punishment-text'),
     hostActions: document.getElementById('host-modal-actions'),
     btnNextRound: document.getElementById('btn-next-round'),
     clientWait: document.getElementById('client-wait-actions')
@@ -421,20 +424,26 @@ function hostEvaluateChallenge(challengerId) {
   });
 
   const rule = RULES[hostState.ruleSuit];
-  let loser, verdictText;
+  let loser, verdictTitle, verdictSub, isCorrectDoubt;
   
   if (isTruth) {
     loser = challenger;
-    verdictText = `<span class="success">NGHI NGỜ SAI!</span> ${defender.name} đã nói THẬT!`;
+    isCorrectDoubt = false;
+    verdictTitle = "NGHI NGỜ SAI!";
+    verdictSub = `${defender.name} đã nói THẬT!`;
   } else {
     loser = defender;
-    verdictText = `<span class="danger">NGHI NGỜ ĐÚNG!</span> ${defender.name} đã NÓI DỐI!`;
+    isCorrectDoubt = true;
+    verdictTitle = "NGHI NGỜ ĐÚNG!";
+    verdictSub = `${defender.name} đã NÓI DỐI!`;
   }
 
   hostState.challengeResult = {
     loserId: loser.id,
     cards: cards,
-    verdictHtml: verdictText
+    verdictTitle: verdictTitle,
+    verdictSub: verdictSub,
+    isCorrectDoubt: isCorrectDoubt
   };
 
   broadcastState();
@@ -571,10 +580,22 @@ function renderClientUI(state) {
         const isRed = ['♦️','♥️'].includes(c.suit);
         els.modal.revealedCards.innerHTML += `<div class="playing-card ${isRed?'red':''}">${c.rank} ${c.suit}</div>`;
       });
-      els.modal.verdict.innerHTML = challengeResult.verdictHtml;
       
+      if (challengeResult.isCorrectDoubt) {
+        els.modal.contentBox.className = 'modal-alert-content theme-red';
+      } else {
+        els.modal.contentBox.className = 'modal-alert-content';
+      }
+
+      els.modal.title.textContent = challengeResult.verdictTitle;
+      els.modal.verdictSub.textContent = challengeResult.verdictSub;
+      
+      const suitNamesMap = { '♠️':'SPADES', '♣️':'CLUBS', '♦️':'DIAMOND', '♥️':'HEART' };
+      els.modal.ruleIcon.textContent = ruleSuit;
+      els.modal.ruleName.textContent = `${suitNamesMap[ruleSuit]} (${ruleObj.name.toUpperCase()})`;
+
       const loserP = players.find(p => p.id === challengeResult.loserId);
-      els.modal.punishment.innerHTML = `<strong>Hình phạt cho ${loserP.name}:</strong><br/>${ruleObj.desc}`;
+      els.modal.punishment.innerHTML = `<strong>Phạt ${loserP.name}:</strong><br/><span style="color: #fff;">${ruleObj.desc}</span>`;
 
       if (isHost) {
         els.modal.hostActions.classList.remove('hidden');

@@ -135,22 +135,44 @@
     </section>
 
     <!-- CHALLENGE MODAL -->
-    <div id="challenge-modal" class="modal">
-      <div class="modal-content glass-card">
-        <h2 id="challenge-title">Kết Quả Nghi Ngờ</h2>
-        <div id="revealed-cards" class="cards-row justify-center mt-1"></div>
-        <p id="challenge-verdict" class="verdict-text mt-1"></p>
-        <div id="punishment-box" class="punishment-box mt-1"></div>
+    <div id="challenge-modal" class="modal-overlay">
+      <div id="modal-alert-content" class="modal-alert-content">
+        <!-- Top Pill -->
+        <div class="alert-pill">
+          <span class="alert-icon">⚠️</span> GAME LOGIC ALERT
+        </div>
         
+        <!-- Glow Title -->
+        <h1 id="challenge-verdict-title" class="neon-title text-center">NGHI NGỜ ĐÚNG!</h1>
+
+        <!-- Revealed Cards -->
+        <div id="revealed-cards" class="cards-row mb-1"></div>
+        
+        <p id="challenge-sub-verdict" class="text-center bold mb-1 text-lg"></p>
+        
+        <!-- Logic Card -->
+        <div class="logic-card" id="logic-card-box">
+          <div class="logic-header">
+            <span id="logic-rule-icon" class="logic-icon">♥️</span>
+            <div class="logic-meta">
+              <span class="logic-label">CURRENT RULE</span>
+              <h3 id="logic-rule-name" class="logic-name">HEART (RỦI RO)</h3>
+            </div>
+          </div>
+          <div class="logic-divider"></div>
+          <p id="punishment-text" class="logic-desc">Thành viên còn lại biểu quyết hình phạt</p>
+        </div>
+
         <!-- Only HOST resolves the modal -->
-        <div id="host-modal-actions" class="mt-2 text-center hidden">
-          <p class="small-text mb-1 text-muted">Chỉ Chủ Phòng mới có quyền bấm xác nhận</p>
-          <button id="btn-next-round" class="btn btn-action hidden w-100 mt-1">Xác nhận Hình Phạt & Chơi Tiếp</button>
+        <div id="host-modal-actions" class="w-100 text-center hidden">
+          <button id="btn-next-round" class="btn-neon w-100 mb-1 hidden">CHẤP NHẬN & OUT</button>
         </div>
         
-        <div id="client-wait-actions" class="mt-2 text-center hidden">
-          <p class="text-muted">Đang chờ chủ phòng xác nhận...</p>
+        <div id="client-wait-actions" class="w-100 text-center hidden">
+          <p class="small-text text-muted mb-1">Đang đợi Chủ Phòng xử lý...</p>
         </div>
+
+        <p id="decision-timer" class="decision-timer mt-1">DECISION FINALIZES IN 08S</p>
       </div>
     </div>
   </div>

@@ -558,7 +558,7 @@ function renderClientUI(state) {
       const prevP = players.find(p => p.id === previousAction.id);
       els.arena.prevPlayer.textContent = prevP ? prevP.name : 'Ai đó';
       els.arena.prevQty.textContent = previousAction.qty;
-      els.arena.prevValue.textContent = previousAction.claimValue;
+      els.arena.prevValue.innerHTML = `<img src="${SUIT_ICONS[previousAction.claimValue]}" class="suit-img-small" style="vertical-align: middle;" />`;
       els.arena.prevRuleName.textContent = ruleObj.name;
       
       if (isMyTurn && !me.eliminated) {
@@ -634,7 +634,7 @@ function toggleSelectCard(idx, el) {
   }
   els.arena.selectedQty.textContent = selectedHandIndices.length;
   if (clientState.ruleObj) {
-    els.arena.autoClaimText.textContent = `${selectedHandIndices.length} lá ${clientState.ruleObj.name}`;
+    els.arena.autoClaimText.innerHTML = `${selectedHandIndices.length} lá <img src="${SUIT_ICONS[clientState.ruleSuit]}" class="suit-img-small" style="vertical-align: middle;" />`;
   }
   validatePlayButton();
 }

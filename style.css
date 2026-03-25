@@ -170,9 +170,9 @@ input[type="text"]:focus, select:focus { border-color: var(--primary); }
 
 /* Arena Graphics */
 .rule-card {
-  margin: 1.5rem auto; width: 140px; height: 190px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(0,0,0,0.3));
-  border: 1px solid var(--surface-border); border-radius: 15px;
+  margin: 1.5rem auto; width: 140px; aspect-ratio: 4 / 5;
+  background: url('image/card%20bg.png') no-repeat center center / cover;
+  border-radius: 15px;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
@@ -188,10 +188,12 @@ input[type="text"]:focus, select:focus { border-color: var(--primary); }
 .card-rank { font-size: 1.6rem; font-weight: 900; line-height: 1; }
 
 .playing-card {
-  width: 55px; height: 85px; background: white; border-radius: 8px; color: black;
+  width: 60px; aspect-ratio: 4 / 5;
+  background: white url('image/card%20bg.png') no-repeat center center / cover;
+  border-radius: 8px; color: black;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   font-weight: bold; font-size: 1.2rem; cursor: pointer; user-select: none;
-  transition: transform 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 .playing-card.red { color: #ff4757; }
 .playing-card.black { color: #2f3542; }

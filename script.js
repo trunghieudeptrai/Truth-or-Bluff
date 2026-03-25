@@ -1,0 +1,631 @@
+// Constants
+const SUITS = ['♠️', '♣️', '♦️', '♥️'];
+const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+const RULES = {
+  '♠️': { name: 'Sự Thật', desc: 'Bị nghi ngờ đúng: Phải kể 1 sự thật. Uống để ở lại.', reqDrink: true, exactQty: 0, minQty: 0 },
+  '♣️': { name: 'Hành Động', desc: 'Bị nghi ngờ đúng: Phải thực hiện 1 hành động. Uống để ở lại.', reqDrink: true, exactQty: 0, minQty: 0 },
+  '♦️': { name: 'Tàn Sát', desc: 'Số lá: 1. Thua cuộc: Đánh giá 1 người, rồi TỰ LOẠI.', reqDrink: false, exactQty: 1, minQty: 0 },
+  '♥️': { name: 'Rủi Ro', desc: 'Số lá: Tối thiểu 2. Thua cuộc: Chịu trừng phạt do biểu quyết, rồi TỰ LOẠI.', reqDrink: false, exactQty: 0, minQty: 2 }
+};
+
+// Application State
+let isHost = false;
+let myPeerId = null;
+let myName = '';
+let peer = null;
+let connections = []; // Clients store 1 (to host). Host stores many (to clients).
+
+// Host-Only Game Engine State
+let hostState = {
+  deck: [],
+  players: [], // { id, name, conn, hand[], eliminated }
+  status: 'lobby', // lobby, round, arena
+  ruleSuit: null,
+  currentPlayerIdx: 0,
+  previousAction: null,
+  challengeResult: null
+};
+
+// Client-Side UI View State
+let clientState = {
+  status: 'home'
+};
+
+let selectedHandIndices = [];
+
+// DOM Element Map
+const els = {
+  screens: {
+    home: document.getElementById('home-screen'),
+    lobby: document.getElementById('lobby-screen'),
+    round: document.getElementById('round-screen'),
+    arena: document.getElementById('game-arena')
+  },
+  home: {
+    name: document.getElementById('my-name-input'),
+    btnCreate: document.getElementById('btn-create-room'),
+    roomInput: document.getElementById('room-code-input'),
+    btnJoin: document.getElementById('btn-join-room'),
+    status: document.getElementById('connection-status')
+  },
+  lobby: {
+    codeHost: document.getElementById('display-room-code'),
+    count: document.getElementById('player-count'),
+    list: document.getElementById('lobby-player-list'),
+    btnStart: document.getElementById('btn-start-game'),
+    waitHostMsg: document.getElementById('wait-host-msg')
+  },
+  round: {
+    icon: document.querySelector('#rule-card .suit-icon'),
+    name: document.querySelector('#rule-card .rule-name'),
+    desc: document.getElementById('rule-description'),
+    btnContinue: document.getElementById('btn-round-continue'),
+    waitMsg: document.getElementById('wait-round-msg')
+  },
+  arena: {
+    ruleIcon: document.getElementById('arena-rule-icon'),
+    ruleName: document.getElementById('arena-rule-name'),
+    playerName: document.getElementById('arena-player-name'),
+    competitors: document.getElementById('competitors-list'),
+    
+    prevBox: document.getElementById('previous-action'),
+    prevPlayer: document.getElementById('prev-player-name'),
+    prevQty: document.getElementById('prev-qty'),
+    prevValue: document.getElementById('prev-value'),
+    reactBtns: document.getElementById('reaction-buttons'),
+    btnDoubt: document.getElementById('btn-doubt'),
+    btnPass: document.getElementById('btn-pass'),
+    
+    handCards: document.getElementById('hand-cards'),
+    handBox: document.getElementById('player-hand-container'),
+    elimMsg: document.getElementById('eliminated-msg'),
+    
+    playForm: document.getElementById('play-action-form'),
+    selectedQty: document.getElementById('selected-qty'),
+    claimValue: document.getElementById('claim-value'),
+    btnPlay: document.getElementById('btn-play-cards')
+  },
+  modal: {
+    container: document.getElementById('challenge-modal'),
+    title: document.getElementById('challenge-title'),
+    revealedCards: document.getElementById('revealed-cards'),
+    verdict: document.getElementById('challenge-verdict'),
+    punishment: document.getElementById('punishment-box'),
+    hostActions: document.getElementById('host-modal-actions'),
+    btnAccept: document.getElementById('btn-punish-accept'),
+    btnEliminate: document.getElementById('btn-punish-eliminate'),
+    btnNextRound: document.getElementById('btn-next-round'),
+    clientWait: document.getElementById('client-wait-actions')
+  }
+};
+
+function switchScreen(id) {
+  Object.values(els.screens).forEach(s => s.classList.remove('active'));
+  els.screens[id].classList.add('active');
+}
+
+// ============== PEERJS NETWORKING ==============
+function initApp() {
+  els.home.btnCreate.addEventListener('click', () => setupPeer(true));
+  els.home.btnJoin.addEventListener('click', () => setupPeer(false));
+
+  // Host UI Listeners
+  els.lobby.btnStart.addEventListener('click', () => hostStartGame());
+  els.round.btnContinue.addEventListener('click', () => { hostState.status = 'arena'; broadcastState(); });
+  els.modal.btnAccept.addEventListener('click', () => hostResolveChallenge(false));
+  els.modal.btnEliminate.addEventListener('click', () => hostResolveChallenge(true));
+  els.modal.btnNextRound.addEventListener('click', () => hostStartNewRound());
+
+  // Action UI Listeners (Send signals to Host)
+  els.arena.btnPlay.addEventListener('click', onPlayClick);
+  els.arena.btnDoubt.addEventListener('click', () => sendAction({ type: 'doubt' }));
+  els.arena.btnPass.addEventListener('click', () => sendAction({ type: 'pass' }));
+}
+
+function setupPeer(creatingHost) {
+  myName = els.home.name.value.trim() || 'Người Ẩn Danh';
+  isHost = creatingHost;
+  const roomCode = els.home.roomInput.value.trim().toLowerCase();
+
+  if (!isHost && !roomCode) {
+    els.home.status.textContent = 'Vui lòng nhập Mã Phòng!';
+    return;
+  }
+
+  els.home.status.textContent = 'Đang kết nối server...';
+  
+  // Create a 5 char random ID for host, or null for client
+  const customId = isHost ? Math.random().toString(36).substring(2, 7) : null;
+  
+  peer = new Peer(customId);
+
+  peer.on('open', (id) => {
+    myPeerId = id;
+    if (isHost) {
+      els.home.status.textContent = 'Phòng đã tạo! Đang khởi tạo...';
+      hostState.players.push({ id: myPeerId, name: myName, conn: null, hand: [], eliminated: false });
+      
+      els.lobby.codeHost.textContent = myPeerId;
+      els.lobby.btnStart.classList.remove('hidden');
+      els.lobby.waitHostMsg.classList.add('hidden');
+      switchScreen('lobby');
+      updateLobbyUI();
+
+      // Listen for clients
+      peer.on('connection', (conn) => {
+        setupHostConnection(conn);
+      });
+    } else {
+      els.home.status.textContent = 'Đang ghép phòng...';
+      const conn = peer.connect(roomCode, { metadata: { name: myName } });
+      connections.push(conn);
+      setupClientConnection(conn);
+    }
+  });
+
+  peer.on('error', (err) => {
+    els.home.status.textContent = 'Lỗi kết nối: ' + err.type;
+  });
+}
+
+// --- HOST NETWORKING LOGIC ---
+function setupHostConnection(conn) {
+  conn.on('open', () => {
+    // Check limit
+    if (hostState.players.length >= 10 || hostState.status !== 'lobby') {
+      conn.send({ type: 'error', msg: 'Phòng đã đầy hoặc đang chơi!' });
+      setTimeout(() => conn.close(), 1000);
+      return;
+    }
+
+    connections.push(conn);
+    const pName = conn.metadata?.name || 'Vô Danh';
+    hostState.players.push({ id: conn.peer, name: pName, conn: conn, hand: [], eliminated: false });
+    
+    updateLobbyUI();
+    broadcastState();
+
+    conn.on('data', (data) => {
+      handleClientAction(conn.peer, data);
+    });
+
+    conn.on('close', () => {
+      handleClientDisconnect(conn.peer);
+    });
+  });
+}
+
+function handleClientDisconnect(peerId) {
+  connections = connections.filter(c => c.peer !== peerId);
+  if (hostState.status === 'lobby') {
+    hostState.players = hostState.players.filter(p => p.id !== peerId);
+    updateLobbyUI();
+    broadcastState();
+  } else {
+    // If playing, mark them eliminated
+    const p = hostState.players.find(x => x.id === peerId);
+    if(p) {
+      p.eliminated = true;
+      if (hostState.players[hostState.currentPlayerIdx]?.id === peerId) {
+        hostNextTurn();
+      }
+      broadcastState();
+    }
+  }
+}
+
+function updateLobbyUI() {
+  els.lobby.list.innerHTML = '';
+  hostState.players.forEach(p => {
+    els.lobby.list.innerHTML += `<li><span>${p.name} ${p.id===myPeerId?'(Host)':''}</span></li>`;
+  });
+  els.lobby.count.textContent = hostState.players.length;
+}
+
+// --- SANITIZE & BROADCAST (HOST) ---
+function broadcastState() {
+  // Extract public info everyone sees
+  const publicPlayers = hostState.players.map(p => ({
+    id: p.id,
+    name: p.name,
+    cardCount: p.hand.length,
+    eliminated: p.eliminated
+  }));
+
+  const rule = hostState.ruleSuit ? RULES[hostState.ruleSuit] : null;
+  const currentP = hostState.players[hostState.currentPlayerIdx];
+
+  hostState.players.forEach(p => {
+    const statePacket = {
+      status: hostState.status,
+      players: publicPlayers,
+      myHand: p.hand, // only send this player's hand
+      ruleSuit: hostState.ruleSuit,
+      ruleObj: rule,
+      currentPlayerId: currentP ? currentP.id : null,
+      previousAction: hostState.previousAction ? {
+        id: hostState.players[hostState.previousAction.idx].id,
+        qty: hostState.previousAction.cardsPlayed.length,
+        claimValue: hostState.previousAction.claimValue
+      } : null,
+      challengeResult: hostState.challengeResult
+    };
+
+    if (p.id === myPeerId) {
+      renderClientUI(statePacket);
+    } else if (p.conn && p.conn.open) {
+      p.conn.send({ type: 'state', state: statePacket });
+    }
+  });
+}
+
+// --- CLIENT NETWORKING LOGIC ---
+function setupClientConnection(conn) {
+  conn.on('open', () => {
+    els.home.status.textContent = 'Đã vào phòng!';
+    els.lobby.codeHost.textContent = conn.peer;
+    els.lobby.btnStart.classList.add('hidden');
+    els.lobby.waitHostMsg.classList.remove('hidden');
+    switchScreen('lobby');
+  });
+
+  conn.on('data', (data) => {
+    if (data.type === 'state') {
+      renderClientUI(data.state);
+    } else if (data.type === 'error') {
+      alert(data.msg);
+      location.reload();
+    }
+  });
+
+  conn.on('close', () => {
+    alert('Chủ phòng đã ngắt kết nối!');
+    location.reload();
+  });
+}
+
+function sendAction(actionData) {
+  if (isHost) {
+    handleClientAction(myPeerId, actionData);
+  } else {
+    if (connections[0] && connections[0].open) {
+      connections[0].send(actionData);
+    }
+  }
+}
+
+// ============== HOST GAME ENGINE ==============
+
+function buildDeck() {
+  hostState.deck = [];
+  SUITS.forEach(suit => {
+    RANKS.forEach(rank => {
+      hostState.deck.push({ suit, rank, isWild: ['J', 'Q', 'K'].includes(rank) });
+    });
+  });
+  // Shuffle
+  for (let i = hostState.deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [hostState.deck[i], hostState.deck[j]] = [hostState.deck[j], hostState.deck[i]];
+  }
+}
+
+function hostStartGame() {
+  if (hostState.players.length < 2) return alert('Cần ít nhất 2 người chơi!');
+  buildDeck();
+  
+  hostState.players.forEach(p => { p.hand = []; p.eliminated = false; });
+  for (let i = 0; i < 5; i++) {
+    hostState.players.forEach(p => p.hand.push(hostState.deck.pop()));
+  }
+
+  hostState.currentPlayerIdx = 0;
+  hostStartNewRound();
+}
+
+function hostStartNewRound() {
+  hostState.previousAction = null;
+  hostState.challengeResult = null;
+
+  const active = hostState.players.filter(p => !p.eliminated);
+  if (active.length <= 1) {
+    alert(`Trò chơi kết thúc! Người thắng là: ${active[0]?.name || 'Không có ai'}`);
+    location.reload();
+    return;
+  }
+
+  const ruleCard = hostState.deck.pop();
+  if (!ruleCard) return alert("Hết bài trong nọc!");
+
+  hostState.ruleSuit = ruleCard.suit;
+  hostState.status = 'round';
+  
+  broadcastState();
+}
+
+function hostNextTurn() {
+  let limit = 0;
+  do {
+    hostState.currentPlayerIdx = (hostState.currentPlayerIdx + 1) % hostState.players.length;
+    limit++;
+  } while (hostState.players[hostState.currentPlayerIdx].eliminated && limit < 15);
+}
+
+function handleClientAction(clientId, data) {
+  // Verify it's their turn unless it's an asynchronous thing
+  const cp = hostState.players[hostState.currentPlayerIdx];
+  if (cp.id !== clientId) return; // Ignore spoofing
+
+  if (data.type === 'play_cards') {
+    // Extracted cards array of indices
+    const toRemove = [...data.cardIndices].sort((a,b) => b-a);
+    const played = [];
+    toRemove.forEach(idx => {
+      played.push(cp.hand[idx]);
+      cp.hand.splice(idx, 1);
+    });
+
+    hostState.previousAction = {
+      idx: hostState.currentPlayerIdx,
+      cardsPlayed: played,
+      claimValue: data.claimValue
+    };
+    
+    if (cp.hand.length === 0) {
+      hostNextTurn();
+    } else {
+      hostNextTurn();
+    }
+    broadcastState();
+  } 
+  else if (data.type === 'pass') {
+    hostState.previousAction = null;
+    broadcastState();
+  }
+  else if (data.type === 'doubt') {
+    hostEvaluateChallenge(clientId);
+  }
+}
+
+function hostEvaluateChallenge(challengerId) {
+  const challengerIdx = hostState.currentPlayerIdx;
+  const defenderIdx = hostState.previousAction.idx;
+  
+  const challenger = hostState.players[challengerIdx];
+  const defender = hostState.players[defenderIdx];
+  
+  const cards = hostState.previousAction.cardsPlayed;
+  const claimed = hostState.previousAction.claimValue;
+  
+  let isTruth = true;
+  cards.forEach(c => {
+    if (c.rank !== claimed && !c.isWild) isTruth = false;
+  });
+
+  const rule = RULES[hostState.ruleSuit];
+  let loser, verdictText;
+  
+  if (isTruth) {
+    loser = challenger;
+    verdictText = `<span class="success">NGHI NGỜ SAI!</span> ${defender.name} đã nói THẬT!`;
+  } else {
+    loser = defender;
+    verdictText = `<span class="danger">NGHI NGỜ ĐÚNG!</span> ${defender.name} đã NÓI DỐI!`;
+  }
+
+  hostState.challengeResult = {
+    loserId: loser.id,
+    cards: cards,
+    verdictHtml: verdictText
+  };
+
+  broadcastState();
+}
+
+function hostResolveChallenge(eliminateThem) {
+  if (!hostState.challengeResult) return;
+  const loserId = hostState.challengeResult.loserId;
+  const rule = RULES[hostState.ruleSuit];
+
+  const p = hostState.players.find(x => x.id === loserId);
+  if(p && (eliminateThem || !rule.reqDrink)) {
+    p.eliminated = true;
+  }
+  
+  hostState.challengeResult = null;
+  hostNextTurn(); // Advance properly
+  hostStartNewRound();
+}
+
+
+// ============== CLIENT UI RENDERER ==============
+
+function renderClientUI(state) {
+  const { status, players, myHand, ruleSuit, ruleObj, currentPlayerId, previousAction, challengeResult } = state;
+  clientState = state; // Save local cache
+
+  // 1. LOBBY STATE
+  if (status === 'lobby') {
+    els.lobby.list.innerHTML = '';
+    players.forEach(p => {
+      els.lobby.list.innerHTML += `<li><span>${p.name} ${p.id===myPeerId?'(Bạn)':''}</span></li>`;
+    });
+    els.lobby.count.textContent = players.length;
+    // Host buttons handled in PeerJS setup, just insure screen is active
+    if (document.querySelector('.screen.active') !== els.screens.lobby) switchScreen('lobby');
+    return;
+  }
+
+  // 2. ROUND STATE
+  if (status === 'round') {
+    els.round.icon.textContent = ruleSuit;
+    els.round.icon.className = `suit-icon ${['♦️','♥️'].includes(ruleSuit) ? 'red' : 'black'}`;
+    els.round.name.textContent = ruleObj.name;
+    els.round.desc.textContent = ruleObj.desc;
+    
+    if (isHost) {
+      els.round.btnContinue.classList.remove('hidden');
+      els.round.waitMsg.classList.add('hidden');
+    } else {
+      els.round.btnContinue.classList.add('hidden');
+      els.round.waitMsg.classList.remove('hidden');
+    }
+    switchScreen('round');
+    return;
+  }
+
+  // 3. ARENA STATE
+  if (status === 'arena') {
+    switchScreen('arena');
+
+    // Rule Info
+    els.arena.ruleIcon.textContent = ruleSuit;
+    els.arena.ruleName.textContent = ruleObj.name;
+
+    // Current Player
+    const activeP = players.find(p => p.id === currentPlayerId);
+    els.arena.playerName.textContent = activeP ? activeP.name : '---';
+    const isMyTurn = (currentPlayerId === myPeerId);
+
+    // Render Competitors
+    els.arena.competitors.innerHTML = '';
+    let me = null;
+    players.forEach(p => {
+      if (p.id === myPeerId) me = p;
+      const c = document.createElement('div');
+      c.className = `competitor-badge ${p.eliminated ? 'eliminated' : ''} ${p.id === currentPlayerId ? 'active-turn' : ''}`;
+      c.innerHTML = `<span>${p.name}</span> <span class="card-count">${p.cardCount} lá</span>`;
+      els.arena.competitors.appendChild(c);
+    });
+
+    // Render My Hand
+    els.arena.handCards.innerHTML = '';
+    if (me && me.eliminated) {
+      els.arena.elimMsg.classList.remove('hidden');
+      els.arena.handCards.classList.add('hidden');
+    } else {
+      els.arena.elimMsg.classList.add('hidden');
+      els.arena.handCards.classList.remove('hidden');
+      myHand.forEach((card, i) => {
+        const d = document.createElement('div');
+        const isRed = ['♦️','♥️'].includes(card.suit);
+        d.className = `playing-card ${isRed ? 'red' : 'black'} ${selectedHandIndices.includes(i) ? 'selected' : ''}`;
+        d.textContent = `${card.rank} ${card.suit}`;
+        // Can only click if it's my turn AND no previous action exists blocking me
+        d.onclick = () => {
+          if (!isMyTurn || previousAction) return; 
+          toggleSelectCard(i, d);
+        };
+        els.arena.handCards.appendChild(d);
+      });
+    }
+
+    // Previous Action & Reaction Box
+    if (previousAction) {
+      els.arena.prevBox.classList.remove('hidden');
+      const prevP = players.find(p => p.id === previousAction.id);
+      els.arena.prevPlayer.textContent = prevP ? prevP.name : 'Ai đó';
+      els.arena.prevQty.textContent = previousAction.qty;
+      els.arena.prevValue.textContent = previousAction.claimValue;
+      
+      if (isMyTurn && !me.eliminated) {
+        els.arena.reactBtns.classList.remove('hidden');
+      } else {
+        els.arena.reactBtns.classList.add('hidden');
+      }
+      // If there's an action to react to, hide play form
+      els.arena.playForm.classList.add('hidden');
+    } else {
+      els.arena.prevBox.classList.add('hidden');
+      
+      // If it's my turn and no reaction needed, show Play Form
+      if (isMyTurn && !me.eliminated) {
+        els.arena.playForm.classList.remove('hidden');
+        validatePlayButton(); // Re-check buttons
+      } else {
+        els.arena.playForm.classList.add('hidden');
+      }
+    }
+
+    // Modal Challenge handling
+    if (challengeResult) {
+      els.modal.revealedCards.innerHTML = '';
+      challengeResult.cards.forEach(c => {
+        const isRed = ['♦️','♥️'].includes(c.suit);
+        els.modal.revealedCards.innerHTML += `<div class="playing-card ${isRed?'red':''}">${c.rank} ${c.suit}</div>`;
+      });
+      els.modal.verdict.innerHTML = challengeResult.verdictHtml;
+      
+      const loserP = players.find(p => p.id === challengeResult.loserId);
+      els.modal.punishment.innerHTML = `<strong>Hình phạt cho ${loserP.name}:</strong><br/>${ruleObj.desc}`;
+
+      if (isHost) {
+        els.modal.hostActions.classList.remove('hidden');
+        els.modal.clientWait.classList.add('hidden');
+
+        els.modal.btnAccept.classList.add('hidden');
+        els.modal.btnEliminate.classList.add('hidden');
+        els.modal.btnNextRound.classList.add('hidden');
+
+        if (ruleObj.reqDrink) {
+          els.modal.btnAccept.classList.remove('hidden');
+          els.modal.btnEliminate.classList.remove('hidden');
+        } else {
+          els.modal.btnNextRound.classList.remove('hidden'); // Eliminates automatically
+        }
+      } else {
+        els.modal.hostActions.classList.add('hidden');
+        els.modal.clientWait.classList.remove('hidden');
+      }
+
+      els.modal.container.classList.add('active');
+    } else {
+      els.modal.container.classList.remove('active');
+      selectedHandIndices = []; // Clear local selections when new round/turn starts safely
+    }
+  }
+}
+
+// UI Interaction Helpers
+function toggleSelectCard(idx, el) {
+  const pos = selectedHandIndices.indexOf(idx);
+  if (pos > -1) {
+    selectedHandIndices.splice(pos, 1);
+    el.classList.remove('selected');
+  } else {
+    selectedHandIndices.push(idx);
+    el.classList.add('selected');
+  }
+  els.arena.selectedQty.textContent = selectedHandIndices.length;
+  validatePlayButton();
+}
+
+function validatePlayButton() {
+  const rule = clientState.ruleObj;
+  if(!rule) return;
+  let isValid = selectedHandIndices.length > 0;
+  
+  if (rule.exactQty > 0 && selectedHandIndices.length !== rule.exactQty) isValid = false;
+  if (rule.minQty > 0 && selectedHandIndices.length < rule.minQty) isValid = false;
+
+  els.arena.btnPlay.disabled = !isValid;
+  if(!isValid && selectedHandIndices.length > 0) {
+    els.arena.btnPlay.textContent = rule.exactQty ? `Vui lòng chọn ĐÚNG ${rule.exactQty} lá` : `Chọn TỐI THIỂU ${rule.minQty} lá`;
+  } else {
+    els.arena.btnPlay.textContent = "Hạ Bài";
+  }
+}
+
+function onPlayClick() {
+  if (selectedHandIndices.length === 0) return;
+  const data = {
+    type: 'play_cards',
+    cardIndices: selectedHandIndices,
+    claimValue: els.arena.claimValue.value
+  };
+  sendAction(data);
+  selectedHandIndices = []; // Optimistically clear
+}
+
+initApp();

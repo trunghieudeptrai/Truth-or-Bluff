@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Truth or Bluff - Online</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- PeerJS for WebRTC -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <!-- BG Animation -->
+  <div class="background-glass"></div>
+
+  <div id="app">
+    <!-- HOME SCREEN -->
+    <section id="home-screen" class="screen active">
+      <div class="glass-card">
+        <h1 class="title">Truth <span class="highlight">or</span> Bluff</h1>
+        <p class="subtitle text-center">Bản Online (Serverless P2P)</p>
+        
+        <div class="control-group mt-2">
+          <label>Tên của bạn:</label>
+          <input type="text" id="my-name-input" placeholder="Nhập tên..." />
+        </div>
+        
+        <div class="action-buttons mt-2">
+          <button id="btn-create-room" class="btn btn-action w-100">Tạo Phòng (Host)</button>
+        </div>
+        
+        <div class="control-group mt-2">
+          <label>Mã Phòng (nếu muốn vào phòng người khác):</label>
+          <input type="text" id="room-code-input" placeholder="Nhập mã phòng 4-6 số..." />
+        </div>
+        <button id="btn-join-room" class="btn btn-primary w-100 mt-1">Vào Phòng</button>
+        
+        <p id="connection-status" class="status-text mt-2 text-center"></p>
+      </div>
+    </section>
+
+    <!-- LOBBY SCREEN -->
+    <section id="lobby-screen" class="screen">
+      <div class="glass-card">
+        <h2 class="text-center">Phòng Chờ</h2>
+        <div class="room-code-box mt-1">
+          <p>Mã Phòng của bạn:</p>
+          <h1 id="display-room-code" class="highlight huge-text">----</h1>
+          <p class="small-text">(Chia sẻ mã này cho bạn bè)</p>
+        </div>
+        
+        <h3 class="mt-2">Người chời đã vào (<span id="player-count">1</span>/10):</h3>
+        <ul id="lobby-player-list" class="player-list mt-1">
+          <!-- Populated by JS -->
+        </ul>
+        
+        <!-- Only visible to host -->
+        <button id="btn-start-game" class="btn btn-action w-100 mt-2 hidden">Bắt Đầu Game</button>
+        <!-- Visible to clients -->
+        <p id="wait-host-msg" class="text-center mt-2 text-muted hidden">Đang chờ chủ phòng bắt đầu...</p>
+      </div>
+    </section>
+
+    <!-- ROUND INFO SCREEN -->
+    <section id="round-screen" class="screen">
+      <div class="glass-card text-center">
+        <h2 class="round-title">Vòng Mới</h2>
+        <div id="rule-card" class="rule-card">
+          <div class="suit-icon">♠️</div>
+          <h3 class="rule-name">Sự Thật</h3>
+        </div>
+        <p id="rule-description" class="rule-desc mt-1"></p>
+        
+        <!-- Only host can click next, or it auto-advances -->
+        <button id="btn-round-continue" class="btn btn-primary mt-2 hidden">Vào Ván</button>
+        <p id="wait-round-msg" class="text-center mt-2 text-muted hidden">Đang chờ chủ phòng...</p>
+      </div>
+    </section>
+
+    <!-- MAIN GAME ARENA -->
+    <section id="game-arena" class="screen">
+      <div class="arena-header glass-card-small">
+        <div class="current-rule">
+          <span id="arena-rule-icon">♠️</span> <span id="arena-rule-name">Sự Thật</span>
+        </div>
+        <div class="current-turn">
+          Lượt của: <span id="arena-player-name" class="highlight bold">---</span>
+        </div>
+      </div>
+      
+      <!-- List of competitors (to show their card counts) -->
+      <div id="competitors-list" class="competitors-list glass-card-small mt-1">
+        <!-- Render other players card count -->
+      </div>
+
+      <!-- Previous Action Info -->
+      <div id="previous-action" class="glass-card-small previous-action hidden">
+        <p><span id="prev-player-name" class="bold">Player X</span> đã hạ <span id="prev-qty" class="bold highlight">2</span> lá bài và hô là:</p>
+        <h2 id="prev-value" class="bold text-center mt-1">-</h2>
+        
+        <!-- Action buttons only visible to the CURRENT active player -->
+        <div id="reaction-buttons" class="action-buttons mt-1 hidden">
+          <button id="btn-doubt" class="btn btn-danger">Nghi Ngờ</button>
+          <button id="btn-pass" class="btn btn-secondary">Bỏ qua</button>
+        </div>
+      </div>
+
+      <!-- Player Hand -->
+      <div id="player-hand-container" class="hand-container glass-card-small mt-1">
+        <h3>Bài của bạn:</h3>
+        <div id="hand-cards" class="cards-row">
+          <!-- Cards injected by JS -->
+        </div>
+        <p id="eliminated-msg" class="text-center danger bold hidden">BẠN ĐÃ BỊ LOẠI khỏi trò chơi!</p>
+      </div>
+
+      <!-- Play Action Form (only visible during your turn) -->
+      <div id="play-action-form" class="glass-card play-form mt-1 hidden">
+        <h3>Đến lượt bạn đánh:</h3>
+        <div class="play-controls">
+          <div class="control-group">
+            <label>Số lượng:</label>
+            <span id="selected-qty" class="badge">0</span>
+          </div>
+          <div class="control-group">
+            <label>Giá trị hô:</label>
+            <select id="claim-value">
+              <option value="A">A</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+        </div>
+        <button id="btn-play-cards" class="btn btn-action w-100 mt-2" disabled>Hạ Bài</button>
+      </div>
+    </section>
+
+    <!-- CHALLENGE MODAL -->
+    <div id="challenge-modal" class="modal">
+      <div class="modal-content glass-card">
+        <h2 id="challenge-title">Kết Quả Nghi Ngờ</h2>
+        <div id="revealed-cards" class="cards-row justify-center mt-1"></div>
+        <p id="challenge-verdict" class="verdict-text mt-1"></p>
+        <div id="punishment-box" class="punishment-box mt-1"></div>
+        
+        <!-- Only HOST resolves the modal -->
+        <div id="host-modal-actions" class="mt-2 text-center hidden">
+          <p class="small-text mb-1 text-muted">Chỉ Chủ Phòng mới có quyền bấm xác nhận</p>
+          <button id="btn-punish-accept" class="btn btn-primary hidden w-100">Xác nhận Đã Uống & Ở Lại</button>
+          <button id="btn-punish-eliminate" class="btn btn-danger hidden w-100">Xác nhận Rời Bàn</button>
+          <button id="btn-next-round" class="btn btn-action hidden w-100 mt-1">Vòng Tiếp Theo</button>
+        </div>
+        
+        <div id="client-wait-actions" class="mt-2 text-center hidden">
+          <p class="text-muted">Đang chờ chủ phòng xác nhận...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

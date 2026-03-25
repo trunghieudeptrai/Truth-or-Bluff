@@ -90,6 +90,7 @@ const els = {
   modal: {
     container: document.getElementById('challenge-modal'),
     contentBox: document.getElementById('modal-alert-content'),
+    alertPlayerName: document.getElementById('alert-player-name'),
     title: document.getElementById('challenge-verdict-title'),
     revealedCards: document.getElementById('revealed-cards'),
     verdictSub: document.getElementById('challenge-sub-verdict'),
@@ -440,6 +441,7 @@ function hostEvaluateChallenge(challengerId) {
 
   hostState.challengeResult = {
     loserId: loser.id,
+    defenderName: defender.name,
     cards: cards,
     verdictTitle: verdictTitle,
     verdictSub: verdictSub,
@@ -587,6 +589,7 @@ function renderClientUI(state) {
         els.modal.contentBox.className = 'modal-alert-content theme-red'; // Red
       }
 
+      els.modal.alertPlayerName.textContent = challengeResult.defenderName.toUpperCase();
       els.modal.title.textContent = challengeResult.verdictTitle;
       els.modal.verdictSub.textContent = challengeResult.verdictSub;
       

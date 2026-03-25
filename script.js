@@ -3,10 +3,10 @@ const SUITS = ['♠️', '♣️', '♦️', '♥️'];
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 const RULES = {
-  '♠️': { name: 'Sự Thật', desc: 'Bị nghi ngờ đúng: Phải kể 1 sự thật. Uống để ở lại.', reqDrink: true, exactQty: 0, minQty: 0 },
-  '♣️': { name: 'Hành Động', desc: 'Bị nghi ngờ đúng: Phải thực hiện 1 hành động. Uống để ở lại.', reqDrink: true, exactQty: 0, minQty: 0 },
-  '♦️': { name: 'Tàn Sát', desc: 'Số lá: 1. Thua cuộc: Đánh giá 1 người, rồi TỰ LOẠI.', reqDrink: false, exactQty: 1, minQty: 0 },
-  '♥️': { name: 'Rủi Ro', desc: 'Số lá: Tối thiểu 2. Thua cuộc: Chịu trừng phạt do biểu quyết, rồi TỰ LOẠI.', reqDrink: false, exactQty: 0, minQty: 2 }
+  '♠️': { name: 'Sự Thật', desc: 'Thua cuộc: Phải kể 1 sự thật.', reqDrink: true, exactQty: 0, minQty: 0 },
+  '♣️': { name: 'Hành Động', desc: 'Thua cuộc: Phải thực hiện 1 hành động.', reqDrink: true, exactQty: 0, minQty: 0 },
+  '♦️': { name: 'Tàn Sát', desc: 'Số lá: 1. Thua cuộc: Đánh giá thật lòng 1 người.', reqDrink: false, exactQty: 1, minQty: 0 },
+  '♥️': { name: 'Rủi Ro', desc: 'Số lá: Tối thiểu 2. Thua cuộc: Chịu trừng phạt do biểu quyết.', reqDrink: false, exactQty: 0, minQty: 2 }
 };
 
 // Application State
@@ -94,8 +94,6 @@ const els = {
     verdict: document.getElementById('challenge-verdict'),
     punishment: document.getElementById('punishment-box'),
     hostActions: document.getElementById('host-modal-actions'),
-    btnAccept: document.getElementById('btn-punish-accept'),
-    btnEliminate: document.getElementById('btn-punish-eliminate'),
     btnNextRound: document.getElementById('btn-next-round'),
     clientWait: document.getElementById('client-wait-actions')
   }
@@ -124,9 +122,7 @@ function initApp() {
   // Host UI Listeners
   els.lobby.btnStart.addEventListener('click', () => hostStartGame());
   els.round.btnContinue.addEventListener('click', () => { hostState.status = 'arena'; broadcastState(); });
-  els.modal.btnAccept.addEventListener('click', () => hostResolveChallenge(false));
-  els.modal.btnEliminate.addEventListener('click', () => hostResolveChallenge(true));
-  els.modal.btnNextRound.addEventListener('click', () => hostStartNewRound());
+  els.modal.btnNextRound.addEventListener('click', () => hostResolveChallenge());
 
   // Action UI Listeners (Send signals to Host)
   els.arena.btnPlay.addEventListener('click', onPlayClick);
@@ -434,16 +430,8 @@ function hostEvaluateChallenge(challengerId) {
   broadcastState();
 }
 
-function hostResolveChallenge(eliminateThem) {
+function hostResolveChallenge() {
   if (!hostState.challengeResult) return;
-  const loserId = hostState.challengeResult.loserId;
-  const rule = RULES[hostState.ruleSuit];
-
-  const p = hostState.players.find(x => x.id === loserId);
-  if(p && (eliminateThem || !rule.reqDrink)) {
-    p.eliminated = true;
-  }
-  
   hostState.challengeResult = null;
   hostNextTurn(); // Advance properly
   hostStartNewRound();
@@ -575,17 +563,7 @@ function renderClientUI(state) {
       if (isHost) {
         els.modal.hostActions.classList.remove('hidden');
         els.modal.clientWait.classList.add('hidden');
-
-        els.modal.btnAccept.classList.add('hidden');
-        els.modal.btnEliminate.classList.add('hidden');
-        els.modal.btnNextRound.classList.add('hidden');
-
-        if (ruleObj.reqDrink) {
-          els.modal.btnAccept.classList.remove('hidden');
-          els.modal.btnEliminate.classList.remove('hidden');
-        } else {
-          els.modal.btnNextRound.classList.remove('hidden'); // Eliminates automatically
-        }
+        els.modal.btnNextRound.classList.remove('hidden');
       } else {
         els.modal.hostActions.classList.add('hidden');
         els.modal.clientWait.classList.remove('hidden');

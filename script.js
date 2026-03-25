@@ -582,9 +582,9 @@ function renderClientUI(state) {
       });
       
       if (challengeResult.isCorrectDoubt) {
-        els.modal.contentBox.className = 'modal-alert-content theme-red';
+        els.modal.contentBox.className = 'modal-alert-content'; // Green (default)
       } else {
-        els.modal.contentBox.className = 'modal-alert-content';
+        els.modal.contentBox.className = 'modal-alert-content theme-red'; // Red
       }
 
       els.modal.title.textContent = challengeResult.verdictTitle;

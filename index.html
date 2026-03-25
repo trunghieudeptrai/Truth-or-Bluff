@@ -14,6 +14,8 @@
   <div class="background-glass"></div>
 
   <div id="app">
+    <button id="btn-quit-global" class="btn btn-danger hidden" style="position: absolute; top: 15px; right: 15px; padding: 8px 15px; z-index: 999; font-size: 0.9rem;">Thoát Game</button>
+    
     <!-- HOME SCREEN -->
     <section id="home-screen" class="screen active">
       <div class="glass-card">
@@ -95,8 +97,9 @@
 
       <!-- Previous Action Info -->
       <div id="previous-action" class="glass-card-small previous-action hidden">
-        <p><span id="prev-player-name" class="bold">Player X</span> đã hạ <span id="prev-qty" class="bold highlight">2</span> lá bài và hô là:</p>
-        <h2 id="prev-value" class="bold text-center mt-1">-</h2>
+        <p><span id="prev-player-name" class="bold">Player X</span> vừa hô:</p>
+        <h2 class="bold text-center mt-1"><span id="prev-qty" class="highlight">2</span> lá <span id="prev-value" class="highlight">A</span></h2>
+        <p class="text-center text-muted small-text mt-1">Thuộc vòng: <span id="prev-rule-name">-</span></p>
         
         <!-- Action buttons only visible to the CURRENT active player -->
         <div id="reaction-buttons" class="action-buttons mt-1 hidden">

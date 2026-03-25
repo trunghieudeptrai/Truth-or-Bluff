@@ -73,6 +73,7 @@ const els = {
     prevPlayer: document.getElementById('prev-player-name'),
     prevQty: document.getElementById('prev-qty'),
     prevValue: document.getElementById('prev-value'),
+    prevRuleName: document.getElementById('prev-rule-name'),
     reactBtns: document.getElementById('reaction-buttons'),
     btnDoubt: document.getElementById('btn-doubt'),
     btnPass: document.getElementById('btn-pass'),
@@ -99,16 +100,26 @@ const els = {
     clientWait: document.getElementById('client-wait-actions')
   }
 };
+els.globalQuit = document.getElementById('btn-quit-global');
 
 function switchScreen(id) {
   Object.values(els.screens).forEach(s => s.classList.remove('active'));
   els.screens[id].classList.add('active');
+  if (els.globalQuit) {
+    if (id === 'home') els.globalQuit.classList.add('hidden');
+    else els.globalQuit.classList.remove('hidden');
+  }
 }
 
 // ============== PEERJS NETWORKING ==============
 function initApp() {
   els.home.btnCreate.addEventListener('click', () => setupPeer(true));
   els.home.btnJoin.addEventListener('click', () => setupPeer(false));
+  els.globalQuit.addEventListener('click', () => {
+    if (confirm('Bạn có chắc chắn muốn thoát khỏi phòng chơi này?')) {
+      location.reload();
+    }
+  });
 
   // Host UI Listeners
   els.lobby.btnStart.addEventListener('click', () => hostStartGame());
@@ -528,6 +539,7 @@ function renderClientUI(state) {
       els.arena.prevPlayer.textContent = prevP ? prevP.name : 'Ai đó';
       els.arena.prevQty.textContent = previousAction.qty;
       els.arena.prevValue.textContent = previousAction.claimValue;
+      els.arena.prevRuleName.textContent = ruleObj.name;
       
       if (isMyTurn && !me.eliminated) {
         els.arena.reactBtns.classList.remove('hidden');

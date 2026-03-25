@@ -84,7 +84,7 @@ const els = {
     
     playForm: document.getElementById('play-action-form'),
     selectedQty: document.getElementById('selected-qty'),
-    claimValue: document.getElementById('claim-value'),
+    autoClaimText: document.getElementById('auto-claim-text'),
     btnPlay: document.getElementById('btn-play-cards')
   },
   modal: {
@@ -411,7 +411,7 @@ function hostEvaluateChallenge(challengerId) {
   
   let isTruth = true;
   cards.forEach(c => {
-    if (c.rank !== claimed && !c.isWild) isTruth = false;
+    if (c.suit !== claimed && !c.isWild) isTruth = false;
   });
 
   const rule = RULES[hostState.ruleSuit];
@@ -610,6 +610,9 @@ function toggleSelectCard(idx, el) {
     el.classList.add('selected');
   }
   els.arena.selectedQty.textContent = selectedHandIndices.length;
+  if (clientState.ruleObj) {
+    els.arena.autoClaimText.textContent = `${selectedHandIndices.length} lá ${clientState.ruleObj.name}`;
+  }
   validatePlayButton();
 }
 
@@ -634,7 +637,7 @@ function onPlayClick() {
   const data = {
     type: 'play_cards',
     cardIndices: selectedHandIndices,
-    claimValue: els.arena.claimValue.value
+    claimValue: clientState.ruleSuit
   };
   sendAction(data);
   selectedHandIndices = []; // Optimistically clear

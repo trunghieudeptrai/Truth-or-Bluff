@@ -444,6 +444,12 @@ function renderClientUI(state) {
   const { status, players, myHand, ruleSuit, ruleObj, currentPlayerId, previousAction, challengeResult } = state;
   clientState = state; // Save local cache
 
+  // Ensure modal closes correctly when a new action or round starts
+  if (!challengeResult) {
+    els.modal.container.classList.remove('active');
+    selectedHandIndices = [];
+  }
+
   // 1. LOBBY STATE
   if (status === 'lobby') {
     els.lobby.list.innerHTML = '';

@@ -337,15 +337,14 @@ function hostStartNewRound() {
 
   const active = hostState.players.filter(p => !p.eliminated);
   if (active.length <= 1) {
-    alert(`Trò chơi kết thúc! Người thắng là: ${active[0]?.name || 'Không có ai'}`);
-    location.reload();
+    alert(`Ván đấu kết thúc!\nNgười Thua Cuộc (Chót) gọi tên: ${active[0]?.name || 'Không có ai'}.\nTrò chơi sẽ tự động xào bài bắt đầu ván mới cho tất cả mọi người!`);
+    hostStartGame();
     return;
   }
 
-  const ruleCard = hostState.deck.pop();
-  if (!ruleCard) return alert("Hết bài trong nọc!");
-
-  hostState.ruleSuit = ruleCard.suit;
+  // Pick a random rule without depleting the deck
+  const randomSuit = SUITS[Math.floor(Math.random() * SUITS.length)];
+  hostState.ruleSuit = randomSuit;
   hostState.status = 'round';
   
   broadcastState();

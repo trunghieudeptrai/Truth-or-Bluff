@@ -342,11 +342,22 @@ function hostStartNewRound() {
     return;
   }
 
-  // Pick a random rule without depleting the deck
+  // Tự động random chất mà không phụ thuộc vào nọc bài
   const randomSuit = SUITS[Math.floor(Math.random() * SUITS.length)];
   hostState.ruleSuit = randomSuit;
   hostState.status = 'round';
   
+  // Re-deal 5 fresh cards to all active players for the new round
+  buildDeck();
+  hostState.players.forEach(p => {
+    if (!p.eliminated) {
+      p.hand = [];
+      for(let i=0; i<5 && hostState.deck.length > 0; i++) {
+        p.hand.push(hostState.deck.pop());
+      }
+    }
+  });
+
   broadcastState();
 }
 

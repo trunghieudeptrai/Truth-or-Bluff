@@ -1,5 +1,10 @@
-// Constants
 const SUITS = ['♠️', '♣️', '♦️', '♥️'];
+const SUIT_ICONS = {
+  '♠️': 'image/Bich.svg',
+  '♣️': 'image/Chuon.svg',
+  '♦️': 'image/Tep.svg',
+  '♥️': 'image/Co.svg'
+};
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 const RULES = {
@@ -485,7 +490,7 @@ function renderClientUI(state) {
 
   // 2. ROUND STATE
   if (status === 'round') {
-    els.round.icon.textContent = ruleSuit;
+    els.round.icon.innerHTML = `<img src="${SUIT_ICONS[ruleSuit]}" class="suit-img-large" />`;
     els.round.icon.className = `suit-icon ${['♦️','♥️'].includes(ruleSuit) ? 'red' : 'black'}`;
     els.round.name.textContent = ruleObj.name;
     els.round.desc.textContent = ruleObj.desc;
@@ -506,7 +511,7 @@ function renderClientUI(state) {
     switchScreen('arena');
 
     // Rule Info
-    els.arena.ruleIcon.textContent = ruleSuit;
+    els.arena.ruleIcon.innerHTML = `<img src="${SUIT_ICONS[ruleSuit]}" class="suit-img-small" />`;
     els.arena.ruleName.textContent = ruleObj.name;
 
     // Current Player
@@ -537,7 +542,7 @@ function renderClientUI(state) {
         const d = document.createElement('div');
         const isRed = ['♦️','♥️'].includes(card.suit);
         d.className = `playing-card ${isRed ? 'red' : 'black'} ${selectedHandIndices.includes(i) ? 'selected' : ''}`;
-        d.textContent = `${card.rank} ${card.suit}`;
+        d.innerHTML = `<span class="card-rank">${card.rank}</span><img src="${SUIT_ICONS[card.suit]}" class="suit-img-card" />`;
         // Can only click if it's my turn AND no previous action exists blocking me
         d.onclick = () => {
           if (!isMyTurn || previousAction) return; 
@@ -580,7 +585,7 @@ function renderClientUI(state) {
       els.modal.revealedCards.innerHTML = '';
       challengeResult.cards.forEach(c => {
         const isRed = ['♦️','♥️'].includes(c.suit);
-        els.modal.revealedCards.innerHTML += `<div class="playing-card ${isRed?'red':''}">${c.rank} ${c.suit}</div>`;
+        els.modal.revealedCards.innerHTML += `<div class="playing-card ${isRed?'red':''}"><span class="card-rank">${c.rank}</span><img src="${SUIT_ICONS[c.suit]}" class="suit-img-card" /></div>`;
       });
       
       if (challengeResult.isCorrectDoubt) {
@@ -594,7 +599,7 @@ function renderClientUI(state) {
       els.modal.verdictSub.textContent = challengeResult.verdictSub;
       
       const suitNamesMap = { '♠️':'SPADES', '♣️':'CLUBS', '♦️':'DIAMOND', '♥️':'HEART' };
-      els.modal.ruleIcon.textContent = ruleSuit;
+      els.modal.ruleIcon.innerHTML = `<img src="${SUIT_ICONS[ruleSuit]}" class="suit-img-large" />`;
       els.modal.ruleName.textContent = `${suitNamesMap[ruleSuit]} (${ruleObj.name.toUpperCase()})`;
 
       const loserP = players.find(p => p.id === challengeResult.loserId);

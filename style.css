@@ -171,7 +171,7 @@ input[type="text"]:focus, select:focus { border-color: var(--primary); }
 /* Arena Graphics */
 .rule-card {
   margin: 1.5rem auto; width: 140px; aspect-ratio: 4 / 5;
-  background: url('image/card%20bg.png') no-repeat center center / cover;
+  background: url('image/card bg.png') no-repeat center center / cover;
   border-radius: 15px;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -189,7 +189,7 @@ input[type="text"]:focus, select:focus { border-color: var(--primary); }
 
 .playing-card {
   width: 60px; aspect-ratio: 4 / 5;
-  background: white url('image/card%20bg.png') no-repeat center center / cover;
+  background: white url('image/card bg.png') no-repeat center center / cover;
   border-radius: 8px; color: black;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   font-weight: bold; font-size: 1.2rem; cursor: pointer; user-select: none;

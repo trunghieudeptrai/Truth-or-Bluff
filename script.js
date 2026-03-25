@@ -1,9 +1,9 @@
 const SUITS = ['♠️', '♣️', '♦️', '♥️'];
 const SUIT_ICONS = {
-  '♠️': 'image/bich.svg',
-  '♣️': 'image/chuon.svg',
-  '♦️': 'image/tep.svg',
-  '♥️': 'image/co.svg'
+  '♠️': 'image/Bich.svg',
+  '♣️': 'image/Chuon.svg',
+  '♦️': 'image/Tep.svg',
+  '♥️': 'image/Co.svg'
 };
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 

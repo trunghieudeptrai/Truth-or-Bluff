@@ -15,6 +15,9 @@ const RULES = {
 };
 
 function getCardImage(card) {
+  if (card.isJoker) {
+    return card.suit === 'joker_red' ? 'image/card/Joker card red.png' : 'image/card/Joker card black.png';
+  }
   const suitMap = { '♠️':'spades', '♣️':'clubs', '♦️':'diamonds', '♥️':'hearts' };
   return `image/card/${card.rank}_${suitMap[card.suit]}.png`;
 }
@@ -364,6 +367,10 @@ function buildDeck() {
       hostState.deck.push({ suit, rank, isWild: ['J', 'Q', 'K'].includes(rank) });
     });
   });
+  // Add 2 Jokers which act as ultimate wildcards
+  hostState.deck.push({ suit: 'joker_red', rank: 'Joker', isWild: true, isJoker: true });
+  hostState.deck.push({ suit: 'joker_black', rank: 'Joker', isWild: true, isJoker: true });
+  
   // Shuffle
   for (let i = hostState.deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -625,7 +632,7 @@ function renderClientUI(state) {
       els.arena.handCards.classList.remove('hidden');
       myHand.forEach((card, i) => {
         const d = document.createElement('div');
-        const isRed = ['♦️','♥️'].includes(card.suit);
+        const isRed = ['♦️','♥️', 'joker_red'].includes(card.suit);
         
         if (!isMyTurn && !isSpectatorViewingCards) {
           let themeCard = '';
@@ -689,7 +696,7 @@ function renderClientUI(state) {
     if (challengeResult) {
       els.modal.revealedCards.innerHTML = '';
       challengeResult.cards.forEach(c => {
-        const isRed = ['♦️','♥️'].includes(c.suit);
+        const isRed = ['♦️','♥️', 'joker_red'].includes(c.suit);
         els.modal.revealedCards.innerHTML += `
         <div class="playing-card ${isRed?'red':''}" style="background-image: url('${getCardImage(c)}'); background-size: cover; background-position: center;">
         </div>`;

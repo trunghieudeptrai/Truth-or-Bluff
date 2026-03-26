@@ -214,31 +214,39 @@
         <h2 class="neon-title text-center" style="font-size: 2rem; margin-bottom: 10px; border-bottom: 2px solid #4ade80; display: block; padding-bottom: 5px;">LUẬT CHƠI</h2>
         <div style="color: #ddd; font-size: 0.95rem; line-height: 1.5;">
           <h3 style="color: #fff; margin-top: 10px;">1. Thiết lập & Giá trị bài</h3>
-          <p><strong>Chia bài:</strong> Mỗi người 5 lá.</p>
+          <p><strong>Số lượng:</strong> 52 lá + 2 Joker. Mỗi người chia 5 lá.</p>
           <p><strong>Lá A - 10:</strong> Tính theo số nút.<br/>
-          <strong>Lá J, Q, K:</strong> Thẻ biến hình (được coi là bất kỳ lá bài nào).</p>
+          <strong>Lá J, Q, K:</strong> Thẻ biến hình (Wildcard) - giả dạng mọi con số.</p>
 
-          <h3 style="color: #fff; margin-top: 15px;">2. Hệ thống Vòng chơi & Hình phạt</h3>
-          <p>Mỗi vòng bốc 1 lá bài chủ đề. Khi có người Nghi ngờ (đúng hoặc sai), người thua cuộc phải chịu phạt như sau:</p>
+          <h3 style="color: #fff; margin-top: 15px;">2. Hai quân bài "Quyền lực" (Joker)</h3>
+          <p>🔴 <strong>Joker Đỏ (Thấu Thị):</strong><br/>
+          <span style="color: #4ade80;">* Tác dụng:</span> Xem toàn bộ bài của 1 người chỉ định. Miễn nhiễm nghi ngờ trong lượt này.<br/>
+          <span style="color: #ff4757;">* Ràng buộc:</span> Chỉ được hạ duy nhất 1 lá này (không kẹp thêm). KHÔNG ĐƯỢC dùng làm lá cuối cùng để về đích.</p>
+          <p class="mt-1">⚫ <strong>Joker Đen (Phản Đòn):</strong><br/>
+          <span style="color: #4ade80;">* Tác dụng:</span> Nếu bị "Nghi ngờ", lật Joker Đen lên để bật ngược hình phạt cho kẻ nghi ngờ.<br/>
+          <span style="color: #ff4757;">* Ràng buộc:</span> Có thể kẹp chung với các lá bài khác khi hạ bài.</p>
+
+          <h3 style="color: #fff; margin-top: 15px;">3. Vòng chơi & Hình phạt (Uống)</h3>
+          <p>Đầu mỗi vòng bốc 1 lá xác định "Chủ đề":</p>
           <ul style="padding-left: 20px; margin-top: 5px;">
-            <li style="margin-bottom: 8px;"><strong style="color: #fff;"><img src="image/su that.png" alt="♠️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Bích - Sự thật:</strong> Trả lời thật lòng 1 câu hỏi từ đối phương. <span style="color: #4ade80; font-weight: bold;">(Phạt 1 Ly)</span></li>
-            <li style="margin-bottom: 8px;"><strong style="color: #fff;"><img src="image/hanh dong.png" alt="♣️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Chuồn - Hành động:</strong> Thực hiện 1 yêu cầu (Dare) từ đối phương. <span style="color: #4ade80; font-weight: bold;">(Phạt 1 Ly)</span></li>
-            <li style="margin-bottom: 8px;"><strong style="color: #ff4757;"><img src="image/tan sat.png" alt="♦️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Rô - Tàn sát:</strong> Nhận xét thật lòng về 1 người do đối phương chỉ định. <span style="color: #ff4757; font-weight: bold;">(Phạt 2 Ly)</span></li>
-            <li style="margin-bottom: 8px;"><strong style="color: #ff4757;"><img src="image/rui ro.png" alt="♥️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Cơ - Rủi ro:</strong> Chịu 1 hình phạt theo biểu quyết của cả nhóm. <span style="color: #ff4757; font-weight: bold;">(Phạt 2 Ly)</span></li>
+            <li style="margin-bottom: 8px;"><strong style="color: #fff;"><img src="image/su that.png" alt="♠️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Bích - Sự thật:</strong> Trả lời thật lòng 1 câu hỏi. <span style="color: #4ade80; font-weight: bold;">(1 Ly)</span></li>
+            <li style="margin-bottom: 8px;"><strong style="color: #fff;"><img src="image/hanh dong.png" alt="♣️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Chuồn - Hành động:</strong> Thực hiện 1 yêu cầu (Dare). <span style="color: #4ade80; font-weight: bold;">(1 Ly)</span></li>
+            <li style="margin-bottom: 8px;"><strong style="color: #ff4757;"><img src="image/tan sat.png" alt="♦️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Rô - Tàn sát:</strong> Nhận xét thật lòng về 1 người. <span style="color: #ff4757; font-weight: bold;">(2 Ly)</span></li>
+            <li style="margin-bottom: 8px;"><strong style="color: #ff4757;"><img src="image/rui ro.png" alt="♥️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Cơ - Rủi ro:</strong> Hình phạt theo biểu quyết nhóm. <span style="color: #ff4757; font-weight: bold;">(2 Ly)</span></li>
           </ul>
 
-          <h3 style="color: #fff; margin-top: 15px;">3. Quy trình chơi & Giới hạn bài</h3>
-          <p>Người chơi hạ bài (úp mặt) và hô lớn Số lượng + Giá trị.</p>
-          <p><strong>Quy định số lá hạ đặc biệt:</strong><br/>
-          - <strong>Vòng Rô (♦️):</strong> Chỉ được hạ đúng 1 lá. (Cực kỳ dễ bị bắt bài!)<br/>
-          - <strong>Vòng Cơ (♥️):</strong> Bắt buộc hạ tối thiểu 2 lá. (Đòi hỏi khả năng diễn xuất cao).</p>
-          <p style="margin-top: 5px; font-size: 0.9rem; color: #4ade80;"><strong>Luật "Thêm cơ hội":</strong> Vì không còn bị loại, nên bất kể ở vòng nào, nếu bạn bị nghi ngờ đúng (nói dối), bạn phải uống đủ số ly quy định để được ở lại ván chơi và tiếp tục xả số bài còn lại trên tay.</p>
+          <h3 style="color: #fff; margin-top: 15px;">4. Quy tắc hạ bài "Sát phạt"</h3>
+          <p><strong>Vòng Rô (♦️):</strong> Chỉ được hạ đúng 1 lá.<br/>
+          <strong>Vòng Cơ (♥️):</strong> Bắt buộc hạ tối thiểu 2 lá.</p>
+          <p><strong>Hành động:</strong> Khi hạ bài phải hô lớn Số lượng + Giá trị.</p>
+          <p><strong>Nghi ngờ:</strong> Người kế tiếp có quyền tin hoặc hô "Nghi ngờ".<br/>
+          - <strong>Nghi ngờ Đúng:</strong> Người ra bài nói dối bị phạt (Uống + Tương tác).<br/>
+          - <strong>Nghi ngờ Sai:</strong> Người nghi ngờ bị phạt.</p>
 
-          <h3 style="color: #fff; margin-top: 15px;">4. Cách phân định Thắng - Thua</h3>
-          <p>- <strong>Nghi ngờ Đúng:</strong> Người nói dối bị phạt (Uống + Hình phạt tương tác).<br/>
-          - <strong>Nghi ngờ Sai:</strong> Người nghi ngờ bị phạt (Uống + Hình phạt tương tác).</p>
-          <p>- <strong>Về đích:</strong> Người đầu tiên hết bài trên tay là người chiến thắng và được quyền "ngồi xem" các thành viên còn lại chịu phạt.</p>
-          <p>- <strong>Kết thúc vòng:</strong> Mỗi khi có hành động "Nghi ngờ" xảy ra, vòng đó kết thúc ngay lập tức. Bốc lá bài mới để đổi Rule cho người tiếp theo.</p>
+          <h3 style="color: #fff; margin-top: 15px;">5. Kết thúc & An toàn</h3>
+          <p><strong>Về đích:</strong> Người hết bài đầu tiên thắng.<br/>
+          <i style="color: #aaa; font-size: 0.85rem;">Lưu ý: Nếu bạn hạ lá cuối cùng mà người sau không nghi ngờ, bạn mới chính thức an toàn.</i></p>
+          <p><strong>Lật vòng:</strong> Mỗi khi có "Nghi ngờ" xảy ra, vòng đó kết thúc ngay lập tức. Bốc lá bài mới để đổi Rule.</p>
         </div>
         <button id="btn-close-rules" class="btn-neon w-100 mt-2" style="padding: 10px; font-size: 1rem; margin-top: 15px;">ĐÃ HIỂU</button>
       </div>

@@ -353,6 +353,8 @@ function setupClientConnection(conn) {
       location.reload();
     } else if (data.type === 'joker_vision_response') {
       clientHandleData(data);
+    } else if (data.type === 'system_toast') {
+      alert(data.msg);
     }
   });
 
@@ -457,6 +459,22 @@ function handleClientAction(clientId, data) {
       cp.hand.splice(idx, 1);
     });
 
+    // Check Black Joker sneaky push
+    if (played.length === 2 && played.some(c => c.suit === 'joker_black')) {
+      const accompanyingCard = played.find(c => c.suit !== 'joker_black');
+      const opponents = hostState.players.filter(p => !p.eliminated && p.id !== cp.id);
+      if (opponents.length > 0 && accompanyingCard) {
+        const targetOpponent = opponents[Math.floor(Math.random() * opponents.length)];
+        targetOpponent.hand.push(accompanyingCard); // Push to array
+        
+        if (targetOpponent.conn && targetOpponent.conn.open) {
+          targetOpponent.conn.send({ type: 'system_toast', msg: '🃏 Ai đó vừa lén nhét 1 lá bài vào tay bạn!' });
+        } else if (targetOpponent.id === myPeerId) {
+          alert('🃏 Ai đó vừa lén nhét 1 lá bài vào tay bạn!');
+        }
+      }
+    }
+
     if (data.jokerTargetId && played.length === 1 && played[0].suit === 'joker_red') {
       const targetP = hostState.players.find(p => p.id === data.jokerTargetId && !p.eliminated);
       if (targetP) {
@@ -514,7 +532,15 @@ function hostEvaluateChallenge(challengerId) {
   const rule = RULES[hostState.ruleSuit];
   let loser, verdictTitle, verdictSub, isCorrectDoubt;
   
-  if (isTruth) {
+  const hasBlackJoker = cards.some(c => c.suit === 'joker_black');
+  
+  if (hasBlackJoker) {
+    isTruth = false; // Always fail if Black Joker is caught
+    loser = defender;
+    isCorrectDoubt = true;
+    verdictTitle = "BẮT QUẢ TANG!";
+    verdictSub = `<span style="color: #4ade80;">${challenger.name}</span> đã phát hiện <span style="color: #ff4757;">${defender.name} đánh lén Joker Đen!</span>`;
+  } else if (isTruth) {
     loser = challenger;
     isCorrectDoubt = false;
     verdictTitle = "NGHI NGỜ SAI!";
@@ -526,6 +552,11 @@ function hostEvaluateChallenge(challengerId) {
     verdictSub = `<span style="color: #4ade80;">${challenger.name}</span> đã lật tẩy <span style="color: #ff4757;">${defender.name} (Nói Dối)</span>!`;
   }
 
+  let punishmentHtml = `<strong>Phạt ${loser.name}:</strong><br/><span style="color: #fff;">${rule.desc}</span>`;
+  if (hasBlackJoker) {
+    punishmentHtml = `<strong>Hình phạt đặc biệt cho Joker Đen:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">BỊ PHẠT ĐÚNG 3 LY!</span>`;
+  }
+
   hostState.challengeResult = {
     loserId: loser.id,
     defenderName: defender.name,
@@ -533,7 +564,8 @@ function hostEvaluateChallenge(challengerId) {
     cards: cards,
     verdictTitle: verdictTitle,
     verdictSub: verdictSub,
-    isCorrectDoubt: isCorrectDoubt
+    isCorrectDoubt: isCorrectDoubt,
+    punishmentHtml: punishmentHtml
   };
 
   broadcastState();
@@ -743,8 +775,7 @@ function renderClientUI(state) {
       els.modal.title.textContent = challengeResult.verdictTitle;
       els.modal.verdictSub.innerHTML = challengeResult.verdictSub;
       
-      const loserP = players.find(p => p.id === challengeResult.loserId);
-      els.modal.punishment.innerHTML = `<strong>Phạt ${loserP.name}:</strong><br/><span style="color: #fff;">${ruleObj.desc}</span>`;
+      els.modal.punishment.innerHTML = challengeResult.punishmentHtml;
 
       if (isHost) {
         els.modal.hostActions.classList.remove('hidden');

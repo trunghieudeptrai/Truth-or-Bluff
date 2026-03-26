@@ -15,13 +15,8 @@ const RULES = {
 };
 
 function getCardImage(card) {
-  const suitMap = { '♠️':'bích', '♣️':'chuồn', '♦️':'tép', '♥️':'cơ' };
-  const s = suitMap[card.suit];
-  let r = card.rank;
-  if (r === 'J') r = (s === 'tép') ? 'joker' : 'Joker';
-  else if (r === 'Q') r = (s === 'tép') ? 'queen' : 'Queen';
-  else if (r === 'K') r = 'king';
-  return encodeURI(`image/card/${r} card ${s}.png`);
+  const suitMap = { '♠️':'spades', '♣️':'clubs', '♦️':'diamonds', '♥️':'hearts' };
+  return `image/card/${card.rank}_${suitMap[card.suit]}.png`;
 }
 
 // Application State

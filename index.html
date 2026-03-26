@@ -84,6 +84,7 @@
       <!-- Top nav -->
       <div class="arena-top-bar">
         <button id="btn-quit-in-game" class="btn-text" onclick="document.getElementById('btn-quit-global').click()">← THOÁT</button>
+        <button id="btn-show-rules" class="btn-text">LUẬT CHƠI</button>
       </div>
 
       <!-- Rule Name -->
@@ -192,6 +193,44 @@
         </div>
 
         <p id="decision-timer" class="decision-timer mt-1">DECISION FINALIZES IN 08S</p>
+      </div>
+    </div>
+
+    <!-- RULES MODAL -->
+    <div id="rules-modal" class="modal-overlay">
+      <div class="modal-alert-content" style="max-height: 80vh; overflow-y: auto; text-align: left; padding: 20px; background: #151515; border: 1px solid #333; border-radius: 12px; display: block;">
+        <h2 class="neon-title text-center" style="font-size: 2rem; margin-bottom: 10px; border-bottom: 2px solid #4ade80; display: block; padding-bottom: 5px;">LUẬT CHƠI</h2>
+        <div style="color: #ddd; font-size: 0.95rem; line-height: 1.5;">
+          <h3 style="color: #fff; margin-top: 10px;">1. Thiết lập ban đầu</h3>
+          <p>Bộ bài: 52 lá. Mỗi người được chia 5 lá.</p>
+          <p>Giá trị quân bài:<br/>
+          - Lá A đến 10: Tính theo số nút.<br/>
+          - Lá J, Q, K: Được coi là "Wildcard" (có thể giả dạng thành bất kỳ quân bài nào bạn muốn).</p>
+
+          <h3 style="color: #fff; margin-top: 15px;">2. Xác định Vòng chơi (Rule)</h3>
+          <ul style="padding-left: 20px; margin-top: 5px;">
+            <li style="margin-bottom: 5px;"><strong style="color: #fff;"><img src="image/Bich.svg" alt="♠️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Bích - Sự thật:</strong> Phải trả lời thật lòng 1 câu hỏi từ đối phương.</li>
+            <li style="margin-bottom: 5px;"><strong style="color: #fff;"><img src="image/Chuon.svg" alt="♣️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Chuồn - Hành động:</strong> Phải thực hiện 1 yêu cầu (Dare) từ đối phương.</li>
+            <li style="margin-bottom: 5px;"><strong style="color: #ff4757;"><img src="image/Tep.svg" alt="♦️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Rô - Tàn sát:</strong> Nhận xét thật lòng về 1 người do đối phương chỉ định + Bị loại ngay lập tức.</li>
+            <li style="margin-bottom: 5px;"><strong style="color: #ff4757;"><img src="image/Co.svg" alt="♥️" style="width: 16px; vertical-align: middle; margin-right: 4px; padding-bottom: 2px;">Cơ - Rủi ro:</strong> Chịu 1 hình phạt do cả hội biểu quyết + Bị loại ngay lập tức.</li>
+          </ul>
+          <p style="margin-top: 5px; font-size: 0.85rem; color: #bbb;"><i>Lưu ý đặc biệt: Tại vòng Bích (♠️) và Chuồn (♣️), nếu bạn bị bắt quả tang nói dối, bạn có thể chọn Uống để đổi lấy 1 cơ hội ở lại ván chơi thay vì chịu phạt.</i></p>
+
+          <h3 style="color: #fff; margin-top: 15px;">3. Cách chơi</h3>
+          <p>Trò chơi diễn ra theo lượt. Người chơi có nhiệm vụ tống khứ hết bài trên tay bằng cách nói dối hoặc nói thật.</p>
+          <p><strong>Hạ bài:</strong> Bạn bỏ số lượng bài bất kỳ xuống và hô lớn Số lượng + Giá trị.<br/>
+          Ví dụ: "2 con 9" hoặc "3 con A".<br/>
+          - Vòng Rô (♦️): Chỉ được hạ duy nhất 1 lá.<br/>
+          - Vòng Cơ (♥️): Phải hạ tối thiểu 2 lá.</p>
+
+          <p><strong>Nghi ngờ (Call Bluff):</strong> Người kế tiếp có quyền tin bạn hoặc hô "Nghi ngờ".<br/>
+          - <strong>Nghi ngờ Đúng (Bạn nói dối):</strong> Bạn chịu hình phạt của vòng đó.<br/>
+          - <strong>Nghi ngờ Sai (Bạn nói thật):</strong> Người nghi ngờ chịu hình phạt của vòng đó.</p>
+
+          <h3 style="color: #fff; margin-top: 15px;">4. Điều kiện Thắng/An toàn</h3>
+          <p>Người chơi hết bài trên tay trước sẽ được coi là An toàn nếu người kế tiếp chọn ra bài thay vì nghi ngờ họ.</p>
+        </div>
+        <button id="btn-close-rules" class="btn-neon w-100 mt-2" style="padding: 10px; font-size: 1rem; margin-top: 15px;">ĐÃ HIỂU</button>
       </div>
     </div>
   </div>

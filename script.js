@@ -150,6 +150,14 @@ function initApp() {
     isSpectatorViewingCards = !isSpectatorViewingCards;
     renderClientUI(clientState);
   });
+  
+  // Rules Modal Actions
+  document.getElementById('btn-show-rules').addEventListener('click', () => {
+    document.getElementById('rules-modal').classList.add('active');
+  });
+  document.getElementById('btn-close-rules').addEventListener('click', () => {
+    document.getElementById('rules-modal').classList.remove('active');
+  });
 }
 
 async function setupPeer(creatingHost) {

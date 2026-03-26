@@ -78,6 +78,15 @@ const els = {
     btnContinue: document.getElementById('btn-round-continue'),
     waitMsg: document.getElementById('wait-round-msg')
   },
+  joker: {
+    targetModal: document.getElementById('joker-target-modal'),
+    targetList: document.getElementById('joker-target-list'),
+    btnCancelTarget: document.getElementById('btn-cancel-joker'),
+    viewModal: document.getElementById('joker-view-modal'),
+    targetName: document.getElementById('joker-target-name'),
+    targetCards: document.getElementById('joker-target-cards'),
+    btnCloseView: document.getElementById('btn-close-joker-view')
+  },
   arena: {
     ruleIcon: document.getElementById('arena-rule-icon'),
     ruleName: document.getElementById('arena-rule-name'),
@@ -162,6 +171,9 @@ function initApp() {
   document.getElementById('btn-close-rules').addEventListener('click', () => {
     document.getElementById('rules-modal').classList.remove('active');
   });
+
+  els.joker.btnCancelTarget.addEventListener('click', () => els.joker.targetModal.classList.remove('active'));
+  els.joker.btnCloseView.addEventListener('click', () => els.joker.viewModal.classList.remove('active'));
 }
 
 async function setupPeer(creatingHost) {
@@ -339,6 +351,8 @@ function setupClientConnection(conn) {
     } else if (data.type === 'error') {
       alert(data.msg);
       location.reload();
+    } else if (data.type === 'joker_vision_response') {
+      clientHandleData(data);
     }
   });
 
@@ -442,6 +456,23 @@ function handleClientAction(clientId, data) {
       played.push(cp.hand[idx]);
       cp.hand.splice(idx, 1);
     });
+
+    if (data.jokerTargetId && played.length === 1 && played[0].suit === 'joker_red') {
+      const targetP = hostState.players.find(p => p.id === data.jokerTargetId && !p.eliminated);
+      if (targetP) {
+        const responseData = {
+          type: 'joker_vision_response',
+          targetName: targetP.name,
+          hand: targetP.hand
+        };
+        // Send securely ONLY to the player who played Joker Red
+        if (cp.id === myPeerId) {
+          clientHandleData(responseData);
+        } else if (cp.conn && cp.conn.open) {
+          cp.conn.send(responseData);
+        }
+      }
+    }
 
     hostState.previousAction = {
       idx: hostState.currentPlayerIdx,
@@ -767,13 +798,67 @@ function validatePlayButton() {
 
 function onPlayClick() {
   if (selectedHandIndices.length === 0) return;
+  const selectedCards = selectedHandIndices.map(i => clientState.myHand[i]);
+  
+  // Joker Constraints Validation
+  const hasRedJoker = selectedCards.some(c => c.suit === 'joker_red');
+  const hasBlackJoker = selectedCards.some(c => c.suit === 'joker_black');
+  
+  if (hasRedJoker) {
+    if (selectedCards.length > 1) {
+      alert("Joker Đỏ chỉ được hạ duy nhất 1 lá, KHÔNG kẹp chung với bài khác!");
+      return; 
+    }
+    // Cannot be the last card check
+    if (clientState.myHand.length === 1) {
+      alert("Joker Đỏ KHÔNG ĐƯỢC dùng làm lá bài cuối cùng để về đích!");
+      return;
+    }
+    openJokerTargetModal();
+    return;
+  }
+  
+  if (hasBlackJoker) {
+    if (selectedCards.length !== 2) {
+      alert("Joker Đen chỉ có thể dùng kèm với ĐÚNG 1 lá bài khác!");
+      return; 
+    }
+  }
+
+  sendPlayAction(null);
+}
+
+function sendPlayAction(targetId) {
   const data = {
     type: 'play_cards',
     cardIndices: selectedHandIndices,
-    claimValue: clientState.ruleSuit
+    claimValue: clientState.ruleSuit,
+    jokerTargetId: targetId
   };
   sendAction(data);
   selectedHandIndices = []; // Optimistically clear
+  els.joker.targetModal.classList.remove('active');
+}
+
+function openJokerTargetModal() {
+  els.joker.targetList.innerHTML = '';
+  // Populate all other active players
+  const validTargets = clientState.players.filter(p => p.id !== myPeerId && !p.eliminated);
+  if (validTargets.length === 0) {
+    alert("Không còn ai để xem bài!");
+    sendPlayAction(null); // Just play it without targeting
+    return;
+  }
+  
+  validTargets.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-neon w-100';
+    btn.textContent = p.name;
+    btn.onclick = () => sendPlayAction(p.id);
+    els.joker.targetList.appendChild(btn);
+  });
+  
+  els.joker.targetModal.classList.add('active');
 }
 
 function playRouletteAnimation(targetSuit, iconsMap, callback) {
@@ -813,6 +898,23 @@ function playRouletteAnimation(targetSuit, iconsMap, callback) {
     
     setTimeout(callback, 500);
   }, 3500);
+}
+
+function clientHandleData(data) {
+  if (data.type === 'joker_vision_response') {
+    els.joker.targetName.textContent = data.targetName.toUpperCase();
+    els.joker.targetCards.innerHTML = '';
+    
+    // Render the cards face up
+    data.hand.forEach(c => {
+      const isRed = ['♦️','♥️', 'joker_red'].includes(c.suit);
+      els.joker.targetCards.innerHTML += `
+      <div class="playing-card ${isRed?'red':''}" style="background-image: url('${getCardImage(c)}'); background-size: cover; background-position: center; width: 60px; height: 84px; display: inline-flex; margin-right: -15px;">
+      </div>`;
+    });
+    
+    els.joker.viewModal.classList.add('active');
+  }
 }
 
 initApp();

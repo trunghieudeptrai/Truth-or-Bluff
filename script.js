@@ -613,7 +613,7 @@ function renderClientUI(state) {
       els.arena.prevValue.innerHTML = `<img src="${SUIT_ICONS[previousAction.claimValue]}" class="suit-img-small" style="vertical-align: middle;" />`;
       els.arena.prevRuleName.textContent = ruleObj.name;
       
-      document.getElementById('arena-current-claim').innerHTML = `<span style="font-size:0.9rem; color:#aaa; font-style:normal;">${prevName} ĐÁNH VÀ HÔ:</span><br/><span style="line-height:1.2;">${qty} LÁ ${suitNamesMap[previousAction.claimValue]}</span>`;
+      document.getElementById('arena-current-claim').innerHTML = `<span style="font-size:0.9rem; color:#aaa; font-style:normal;">LƯỢT HÔ TRƯỚC:</span><br/><span style="line-height:1.2;">${qty} LÁ ${suitNamesMap[previousAction.claimValue]}</span>`;
       els.arena.btnDoubt.disabled = false;
       els.arena.btnDoubt.style.opacity = '1';
     } else {

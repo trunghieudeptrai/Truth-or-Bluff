@@ -555,11 +555,12 @@ function renderClientUI(state) {
     switchScreen('arena');
 
     // Rule Info
+    // Rule Info
     const PNG_ICONS = {
-      '♠️': 'image/bich.png',
-      '♣️': 'image/chuon.png',
-      '♦️': 'image/tep.png',
-      '♥️': 'image/co.png'
+      '♠️': 'image/su that.png',
+      '♣️': 'image/hanh dong.png',
+      '♦️': 'image/tan sat.png',
+      '♥️': 'image/rui ro.png'
     };
     els.arena.ruleIcon.innerHTML = `<img src="${SUIT_ICONS[ruleSuit]}" class="suit-img-small" />`;
     els.arena.ruleName.innerHTML = `<img src="${PNG_ICONS[ruleSuit]}" style="height: 0.85em; width: auto; margin-right: 15px; vertical-align: middle; position: relative; bottom: 4px;" alt="suit icon" />${ruleObj.name}`;

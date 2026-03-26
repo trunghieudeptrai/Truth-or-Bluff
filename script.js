@@ -152,7 +152,7 @@ function initApp() {
   });
 }
 
-function setupPeer(creatingHost) {
+async function setupPeer(creatingHost) {
   myName = els.home.name.value.trim() || 'Người Ẩn Danh';
   isHost = creatingHost;
   const roomCode = els.home.roomInput.value.trim().toLowerCase();
@@ -162,14 +162,26 @@ function setupPeer(creatingHost) {
     return;
   }
 
+  els.home.status.textContent = 'Đang lấy dữ liệu server tốc độ cao...';
+  
+  let iceServers = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' }
+  ];
+
+  try {
+    const response = await fetch("https://truthorbluff.metered.live/api/v1/turn/credentials?apiKey=2a47af70a75a5141d75d1239e574c5ecc4ae");
+    const meteredIceServers = await response.json();
+    iceServers = iceServers.concat(meteredIceServers);
+  } catch (err) {
+    console.error("Lỗi lấy TURN server, tiếp tục với STUN dự phòng:", err);
+  }
+
   els.home.status.textContent = 'Đang kết nối server...';
   
   const peerConfig = {
     config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:global.stun.twilio.com:3478' }
-      ]
+      iceServers: iceServers
     }
   };
   if (isHost) {

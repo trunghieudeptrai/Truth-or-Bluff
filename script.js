@@ -42,6 +42,8 @@ let clientState = {
   status: 'home'
 };
 
+let currentRoundRule = null;
+
 let selectedHandIndices = [];
 let isSpectatorViewingCards = false;
 
@@ -68,9 +70,8 @@ const els = {
     waitHostMsg: document.getElementById('wait-host-msg')
   },
   round: {
-    icon: document.querySelector('#rule-card .suit-icon'),
-    name: document.querySelector('#rule-card .rule-name'),
-    desc: document.getElementById('rule-description'),
+    pickedName: document.getElementById('round-picked-name'),
+    pickedDesc: document.getElementById('round-picked-desc'),
     btnContinue: document.getElementById('btn-round-continue'),
     waitMsg: document.getElementById('wait-round-msg')
   },
@@ -534,20 +535,43 @@ function renderClientUI(state) {
 
   // 2. ROUND STATE
   if (status === 'round') {
-    els.round.icon.innerHTML = `<img src="${SUIT_ICONS[ruleSuit]}" class="suit-img-large" />`;
-    els.round.icon.className = `suit-icon ${['♦️','♥️'].includes(ruleSuit) ? 'red' : 'black'}`;
-    els.round.name.textContent = ruleObj.name;
-    els.round.desc.textContent = ruleObj.desc;
-    
-    if (isHost) {
-      els.round.btnContinue.classList.remove('hidden');
-      els.round.waitMsg.classList.add('hidden');
-    } else {
-      els.round.btnContinue.classList.add('hidden');
-      els.round.waitMsg.classList.remove('hidden');
-    }
     switchScreen('round');
+
+    const PNG_ICONS = {
+      '♠️': 'image/su that.png',
+      '♣️': 'image/hanh dong.png',
+      '♦️': 'image/tan sat.png',
+      '♥️': 'image/rui ro.png'
+    };
+
+    if (currentRoundRule !== ruleSuit) {
+      currentRoundRule = ruleSuit;
+      
+      els.round.btnContinue.classList.add('hidden');
+      els.round.waitMsg.classList.add('hidden');
+      els.round.pickedName.classList.add('hidden');
+      els.round.pickedDesc.classList.add('hidden');
+      
+      playRouletteAnimation(ruleSuit, PNG_ICONS, () => {
+         els.round.pickedName.innerHTML = `<img src="${PNG_ICONS[ruleSuit]}" style="height: 0.85em; width: auto; margin-right: 15px; vertical-align: middle; position: relative; bottom: 4px;" alt="suit icon" />${ruleObj.name}`;
+         els.round.pickedDesc.textContent = ruleObj.desc;
+         
+         els.round.pickedName.className = 'neon-title-arena';
+         if (ruleSuit === '♠️') els.round.pickedName.classList.add('theme-blue');
+         else if (ruleSuit === '♣️') els.round.pickedName.classList.add('theme-green');
+         else if (ruleSuit === '♦️') els.round.pickedName.classList.add('theme-red');
+         else if (ruleSuit === '♥️') els.round.pickedName.classList.add('theme-purple');
+         
+         els.round.pickedName.classList.remove('hidden');
+         els.round.pickedDesc.classList.remove('hidden');
+         
+         if (isHost) els.round.btnContinue.classList.remove('hidden');
+         else els.round.waitMsg.classList.remove('hidden');
+      });
+    }
     return;
+  } else {
+    currentRoundRule = null;
   }
 
   // 3. ARENA STATE
@@ -743,6 +767,45 @@ function onPlayClick() {
   };
   sendAction(data);
   selectedHandIndices = []; // Optimistically clear
+}
+
+function playRouletteAnimation(targetSuit, iconsMap, callback) {
+  const track = document.getElementById('roulette-track');
+  track.innerHTML = '';
+  track.style.transition = 'none';
+  
+  const suits = ['♠️','♣️','♦️','♥️'];
+  const NUM_GEMS = 25;
+  const TARGET_IDX = 20;
+  
+  let gemsHtml = '';
+  for(let i = 0; i < NUM_GEMS; i++) {
+    let suit = suits[Math.floor(Math.random() * suits.length)];
+    if (i === TARGET_IDX) suit = targetSuit; 
+    
+    gemsHtml += `<div class="gem-wrapper" id="gem-${i}"><img src="${iconsMap[suit]}" class="gem-icon" /></div>`;
+  }
+  track.innerHTML = gemsHtml;
+  
+  const ITEM_SIZE = 140; // 120 width + 20 gap
+  track.style.transform = `translateX(-60px)`;
+  track.offsetHeight; // force reflow
+  
+  track.style.transition = 'transform 3.5s cubic-bezier(0.15, 0.85, 0.1, 1)';
+  const targetOffset = -(TARGET_IDX * ITEM_SIZE + 60);
+  track.style.transform = `translateX(${targetOffset}px)`;
+  
+  setTimeout(() => {
+    document.getElementById(`gem-${TARGET_IDX}`).classList.add('active');
+    
+    const targetImg = document.querySelector(`#gem-${TARGET_IDX} .gem-icon`);
+    if (targetSuit === '♠️') targetImg.style.filter = 'drop-shadow(0 0 30px #00d2ff) brightness(1.2)';
+    else if (targetSuit === '♣️') targetImg.style.filter = 'drop-shadow(0 0 30px #4ade80) brightness(1.2)';
+    else if (targetSuit === '♦️') targetImg.style.filter = 'drop-shadow(0 0 30px #ff4757) brightness(1.2)';
+    else if (targetSuit === '♥️') targetImg.style.filter = 'drop-shadow(0 0 30px #c56cf0) brightness(1.2)';
+    
+    setTimeout(callback, 500);
+  }, 3500);
 }
 
 initApp();

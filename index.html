@@ -64,18 +64,30 @@
     </section>
 
     <!-- ROUND INFO SCREEN -->
-    <section id="round-screen" class="screen">
-      <div class="glass-card text-center">
-        <h2 class="round-title">Vòng Mới</h2>
-        <div id="rule-card" class="rule-card">
-          <div class="suit-icon"><img src="image/Bich.svg" class="suit-img-large" /></div>
-          <h3 class="rule-name">Sự Thật</h3>
+    <section id="round-screen" class="screen arena-layout-new">
+      <div class="arena-top-bar" style="padding: 20px;">
+        <button id="btn-quit-round" class="btn-text" onclick="document.getElementById('btn-quit-global').click()">← THOÁT</button>
+      </div>
+      
+      <div class="text-center w-100" style="margin-top: -20px;">
+        <h1 class="neon-title-arena" style="font-size: 3.5rem; color: #fff !important; text-shadow: 0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.5) !important; line-height: 1.1; margin-bottom: 20px;">BẮT ĐẦU<br/>VÒNG MỚI</h1>
+      </div>
+
+      <!-- Roulette Slider -->
+      <div class="roulette-container">
+        <div id="roulette-track" class="roulette-track">
+          <!-- Gems -->
         </div>
-        <p id="rule-description" class="rule-desc mt-1"></p>
-        
-        <!-- Only host can click next, or it auto-advances -->
-        <button id="btn-round-continue" class="btn btn-primary mt-2 hidden">Vào Ván</button>
-        <p id="wait-round-msg" class="text-center mt-2 text-muted hidden">Đang chờ chủ phòng...</p>
+      </div>
+      
+      <div class="mt-2 text-center" style="min-height: 80px;">
+        <h2 id="round-picked-name" class="neon-title-arena hidden" style="font-size: 2.5rem; transition: all 0.5s;">SỰ THẬT</h2>
+        <p id="round-picked-desc" class="text-muted mt-1 hidden" style="max-width: 80%; margin: 10px auto;"></p>
+      </div>
+
+      <div class="mt-auto w-100 text-center" style="padding-bottom: 40px; padding-left: 20px; padding-right: 20px;">
+        <button id="btn-round-continue" class="btn-neon w-100 hidden">VÀO VÁN</button>
+        <p id="wait-round-msg" class="text-center text-muted hidden">Đang chờ chủ phòng...</p>
       </div>
     </section>
 

@@ -16,10 +16,12 @@ const RULES = {
 
 function getCardImage(card) {
   const suitMap = { '♠️':'bích', '♣️':'chuồn', '♦️':'tép', '♥️':'cơ' };
-  const rankMap = { 'J':'joker', 'Q':'queen', 'K':'king', 'A':'A' };
   const s = suitMap[card.suit];
-  const r = rankMap[card.rank] || card.rank;
-  return `image/card/${r} card ${s}.png`;
+  let r = card.rank;
+  if (r === 'J') r = (s === 'tép') ? 'joker' : 'Joker';
+  else if (r === 'Q') r = (s === 'tép') ? 'queen' : 'Queen';
+  else if (r === 'K') r = 'king';
+  return encodeURI(`image/card/${r} card ${s}.png`);
 }
 
 // Application State
@@ -128,6 +130,10 @@ function switchScreen(id) {
 
 // ============== PEERJS NETWORKING ==============
 function initApp() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomParam = urlParams.get('room');
+  if (roomParam) els.home.roomInput.value = roomParam;
+
   els.home.btnCreate.addEventListener('click', () => setupPeer(true));
   els.home.btnJoin.addEventListener('click', () => setupPeer(false));
   els.globalQuit.addEventListener('click', () => {
@@ -171,6 +177,7 @@ function setupPeer(creatingHost) {
   peer.on('open', (id) => {
     myPeerId = id;
     if (isHost) {
+      window.history.pushState({}, '', '?room=' + myPeerId);
       els.home.status.textContent = 'Phòng đã tạo! Đang khởi tạo...';
       hostState.players.push({ id: myPeerId, name: myName, conn: null, hand: [], eliminated: false });
       

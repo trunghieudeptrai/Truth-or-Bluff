@@ -8,10 +8,10 @@ const SUIT_ICONS = {
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 const RULES = {
-  '♠️': { name: 'Sự Thật', desc: 'Số lá bài tùy ý. Người thua cuộc khi bị nghi ngờ sai sẽ phải trả lời thành thật 1 câu hỏi bất kỳ do các thành viên còn lại đặt ra.', reqDrink: true, exactQty: 0, minQty: 0 },
-  '♣️': { name: 'Hành Động', desc: 'Số lá bài tùy ý. Người thua cuộc khi bị nghi ngờ sai sẽ phải thực hiện 1 thử thách/hành động do các thành viên còn lại yêu cầu.', reqDrink: true, exactQty: 0, minQty: 0 },
-  '♦️': { name: 'Tàn Sát', desc: 'Số lá bài được ra là 1. Nếu bị nghi ngờ đúng người chơi sẽ phải đánh giá thật lòng về người được chỉ định theo người nghi ngờ, sau đó lập tức out khỏi ván chơi.', reqDrink: false, exactQty: 1, minQty: 0 },
-  '♥️': { name: 'Rủi Ro', desc: 'Số lá bài ra tối thiểu là 2. Người thua cuộc khi bị nghi ngờ sai sẽ phải chịu một hình phạt bất kỳ do các thành viên còn lại thống nhất biểu quyết.', reqDrink: false, exactQty: 0, minQty: 2 }
+  '♠️': { name: 'Sự Thật', desc: 'Số lá bài tùy ý. Người thua bị Phạt 1 Ly và phải trả lời thành thật 1 câu hỏi từ đối phương.', reqDrink: true, exactQty: 0, minQty: 0 },
+  '♣️': { name: 'Hành Động', desc: 'Số lá bài tùy ý. Người thua bị Phạt 1 Ly và phải thực hiện 1 thử thách (Dare) từ đối phương.', reqDrink: true, exactQty: 0, minQty: 0 },
+  '♦️': { name: 'Tàn Sát', desc: 'Số lá bài được ra là ĐÚNG 1 LÁ. Người thua bị Phạt 2 Ly và phải nhận xét thật lòng về người được chỉ định.', reqDrink: true, exactQty: 1, minQty: 0 },
+  '♥️': { name: 'Rủi Ro', desc: 'Số lá bài ra TỐI THIỂU 2 LÁ. Người thua bị Phạt 2 Ly và phải chịu một hình phạt bất kỳ do cả hội biểu quyết.', reqDrink: true, exactQty: 0, minQty: 2 }
 };
 
 function getCardImage(card) {

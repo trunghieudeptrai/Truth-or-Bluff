@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Truth or Bluff - Online</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
   <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
   <!-- PeerJS for WebRTC -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -14,7 +14,7 @@
   <div class="background-glass"></div>
 
   <div id="app">
-    <button id="btn-quit-global" class="btn btn-danger hidden" style="position: absolute; top: 15px; right: 15px; padding: 8px 15px; z-index: 999; font-size: 0.9rem;">Thoát Game</button>
+    <button id="btn-quit-global" class="btn btn-danger hidden" style="display: none !important; position: absolute; top: 15px; right: 15px; padding: 8px 15px; z-index: 999; font-size: 0.9rem;">Thoát Game</button>
     
     <!-- HOME SCREEN -->
     <section id="home-screen" class="screen active">
@@ -80,58 +80,85 @@
     </section>
 
     <!-- MAIN GAME ARENA -->
-    <section id="game-arena" class="screen">
-      <div class="arena-header glass-card-small">
-        <div class="current-rule">
-          <span id="arena-rule-icon"><img src="image/Bich.svg" class="suit-img-small" /></span> <span id="arena-rule-name">Sự Thật</span>
-        </div>
-        <div class="current-turn">
-          Lượt của: <span id="arena-player-name" class="highlight bold">---</span>
-        </div>
-      </div>
-      
-      <!-- List of competitors (to show their card counts) -->
-      <div id="competitors-list" class="competitors-list glass-card-small mt-1">
-        <!-- Render other players card count -->
+    <section id="game-arena" class="screen arena-layout-new">
+      <!-- Top nav -->
+      <div class="arena-top-bar">
+        <button id="btn-quit-in-game" class="btn-text" onclick="document.getElementById('btn-quit-global').click()">← THOÁT</button>
       </div>
 
-      <!-- Previous Action Info -->
-      <div id="previous-action" class="glass-card-small previous-action hidden">
-        <p><span id="prev-player-name" class="bold">Player X</span> vừa hô:</p>
-        <h2 class="bold text-center mt-1"><span id="prev-qty" class="highlight">2</span> lá <span id="prev-value" class="highlight">A</span></h2>
-        <p class="text-center text-muted small-text mt-1">Thuộc vòng: <span id="prev-rule-name">-</span></p>
+      <!-- Rule Name -->
+      <div class="arena-rule-display text-center mt-2">
+        <p class="rule-subtitle">VÒNG CHƠI</p>
+        <h1 id="arena-rule-name" class="neon-title-arena">TÀN SÁT</h1>
+        <span id="arena-rule-icon" style="display:none;"></span>
+        <p id="arena-rule-desc" class="text-muted mt-1" style="font-size: 1rem; max-width: 85%; margin: 10px auto 0; line-height: 1.5;"></p>
+      </div>
+
+      <!-- Turn Info -->
+      <div class="arena-turn-info">
+        <!-- Left Column: Current Player -->
+        <div class="turn-col w-50 text-center">
+          <p class="turn-label">LƯỢT ĐÁNH CỦA</p>
+          <p id="arena-player-name" class="turn-name highlight">BẠN</p>
+        </div>
+
+        <!-- Right Column: Claimed Action -->
+        <div class="turn-col w-50 text-center">
+          <p class="turn-label">HÔ</p>
+          <p id="arena-current-claim" class="turn-name text-white">CHƯA ĐÁNH</p>
+          
+          <!-- Hidden Elements to preserve variable bindings in JS -->
+          <div id="previous-action" style="display:none;">
+            <span id="prev-player-name">---</span>
+            <span id="prev-qty"></span>
+            <span id="prev-value"></span>
+            <span id="prev-rule-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="arena-actions mt-2">
         
-        <!-- Action buttons only visible to the CURRENT active player -->
-        <div id="reaction-buttons" class="action-buttons mt-1 hidden">
-          <button id="btn-doubt" class="btn btn-danger">Nghi Ngờ</button>
-          <button id="btn-pass" class="btn btn-secondary">Bỏ qua</button>
+        <!-- Active Player Actions -->
+        <div id="active-player-actions" class="action-buttons-wrapper hidden">
+          <button id="btn-doubt" class="btn-primary-white">
+            NGHI NGỜ <img src="image/mdi_court-hammer.svg" alt="hammer" style="width: 18px; vertical-align: middle; margin-left: 5px;">
+          </button>
+          
+          <!-- Combine play-action-form logic inside this wrapper -->
+          <div id="play-action-form" style="flex:1;">
+            <button id="btn-play-cards" class="btn-disabled-dark w-100">
+              RA BÀI <img src="image/tabler_play-card-filled.svg" alt="card" style="width: 18px; vertical-align: middle; margin-left: 5px; opacity: 0.5;">
+            </button>
+            <span id="selected-qty" style="display:none;">0</span>
+            <span id="auto-claim-text" style="display:none;"></span>
+          </div>
+        </div>
+
+        <!-- Spectator Actions -->
+        <div id="spectator-actions" class="action-buttons-wrapper hidden" style="justify-content: center;">
+          <button id="btn-view-cards" class="btn-outline-white" style="width: auto; padding: 12px 40px; border: 1px solid #fff; background: #000; color: #fff; border-radius: 8px; font-weight: bold;">
+            XEM BÀI <img src="image/eye.svg" alt="eye" style="width: 18px; vertical-align: middle; margin-left: 5px;">
+          </button>
+        </div>
+        
+        <!-- Keep reaction-buttons hidden safely for JS to toggle without breaking screen -->
+        <div id="reaction-buttons" style="display:none;">
+          <button id="btn-pass" style="display:none;"></button>
         </div>
       </div>
 
       <!-- Player Hand -->
-      <div id="player-hand-container" class="hand-container glass-card-small mt-1">
-        <h3>Bài của bạn:</h3>
-        <div id="hand-cards" class="cards-row">
+      <div id="player-hand-container" class="layout-hand-container mt-auto">
+        <div id="hand-cards" class="cards-overlap-row">
           <!-- Cards injected by JS -->
         </div>
-        <p id="eliminated-msg" class="text-center success bold hidden">🎉 BẠN ĐÃ THẮNG VÀ AN TOÀN! 🎉</p>
+        <p id="eliminated-msg" class="text-center success bold hidden mt-2">🎉 BẠN ĐÃ THẮNG VÀ AN TOÀN! 🎉</p>
       </div>
 
-      <!-- Play Action Form (only visible during your turn) -->
-      <div id="play-action-form" class="glass-card play-form mt-1 hidden">
-        <h3>Đến lượt bạn đánh:</h3>
-        <div class="play-controls">
-          <div class="control-group">
-            <label>Số lượng:</label>
-            <span id="selected-qty" class="badge">0</span>
-          </div>
-          <div class="control-group">
-            <label>Sẽ hô là:</label>
-            <span id="auto-claim-text" class="bold highlight text-center" style="padding-top: 5px;">0 lá ?</span>
-          </div>
-        </div>
-        <button id="btn-play-cards" class="btn btn-action w-100 mt-2" disabled>Hạ Bài</button>
-      </div>
+      <!-- Competitors List Hidden -->
+      <div id="competitors-list" style="display:none;"></div>
     </section>
 
     <!-- CHALLENGE MODAL -->
@@ -152,14 +179,6 @@
         
         <!-- Logic Card -->
         <div class="logic-card" id="logic-card-box">
-          <div class="logic-header">
-            <span id="logic-rule-icon" class="logic-icon"><img src="image/Co.svg" class="suit-img-large" /></span>
-            <div class="logic-meta">
-              <span class="logic-label">CURRENT RULE</span>
-              <h3 id="logic-rule-name" class="logic-name">HEART (RỦI RO)</h3>
-            </div>
-          </div>
-          <div class="logic-divider"></div>
           <p id="punishment-text" class="logic-desc">Thành viên còn lại biểu quyết hình phạt</p>
         </div>
 
@@ -176,7 +195,6 @@
       </div>
     </div>
   </div>
-
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
 </body>
 </html>

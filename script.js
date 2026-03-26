@@ -8,11 +8,19 @@ const SUIT_ICONS = {
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 const RULES = {
-  '♠️': { name: 'Sự Thật', desc: 'Thua cuộc: Phải kể 1 sự thật.', reqDrink: true, exactQty: 0, minQty: 0 },
-  '♣️': { name: 'Hành Động', desc: 'Thua cuộc: Phải thực hiện 1 hành động.', reqDrink: true, exactQty: 0, minQty: 0 },
-  '♦️': { name: 'Tàn Sát', desc: 'Số lá: 1. Thua cuộc: Đánh giá thật lòng 1 người.', reqDrink: false, exactQty: 1, minQty: 0 },
-  '♥️': { name: 'Rủi Ro', desc: 'Số lá: Tối thiểu 2. Thua cuộc: Chịu trừng phạt do biểu quyết.', reqDrink: false, exactQty: 0, minQty: 2 }
+  '♠️': { name: 'Sự Thật', desc: 'Số lá bài tùy ý. Người thua cuộc khi bị nghi ngờ sai sẽ phải trả lời thành thật 1 câu hỏi bất kỳ do các thành viên còn lại đặt ra.', reqDrink: true, exactQty: 0, minQty: 0 },
+  '♣️': { name: 'Hành Động', desc: 'Số lá bài tùy ý. Người thua cuộc khi bị nghi ngờ sai sẽ phải thực hiện 1 thử thách/hành động do các thành viên còn lại yêu cầu.', reqDrink: true, exactQty: 0, minQty: 0 },
+  '♦️': { name: 'Tàn Sát', desc: 'Số lá bài được ra là 1. Nếu bị nghi ngờ đúng người chơi sẽ phải đánh giá thật lòng về người được chỉ định theo người nghi ngờ, sau đó lập tức out khỏi ván chơi.', reqDrink: false, exactQty: 1, minQty: 0 },
+  '♥️': { name: 'Rủi Ro', desc: 'Số lá bài ra tối thiểu là 2. Người thua cuộc khi bị nghi ngờ sai sẽ phải chịu một hình phạt bất kỳ do các thành viên còn lại thống nhất biểu quyết.', reqDrink: false, exactQty: 0, minQty: 2 }
 };
+
+function getCardImage(card) {
+  const suitMap = { '♠️':'bích', '♣️':'chuồn', '♦️':'tép', '♥️':'cơ' };
+  const rankMap = { 'J':'joker', 'Q':'queen', 'K':'king', 'A':'A' };
+  const s = suitMap[card.suit];
+  const r = rankMap[card.rank] || card.rank;
+  return `image/card/${r} card ${s}.png`;
+}
 
 // Application State
 let isHost = false;
@@ -38,6 +46,7 @@ let clientState = {
 };
 
 let selectedHandIndices = [];
+let isSpectatorViewingCards = false;
 
 // DOM Element Map
 const els = {
@@ -71,6 +80,7 @@ const els = {
   arena: {
     ruleIcon: document.getElementById('arena-rule-icon'),
     ruleName: document.getElementById('arena-rule-name'),
+    ruleDesc: document.getElementById('arena-rule-desc'),
     playerName: document.getElementById('arena-player-name'),
     competitors: document.getElementById('competitors-list'),
     
@@ -99,8 +109,6 @@ const els = {
     title: document.getElementById('challenge-verdict-title'),
     revealedCards: document.getElementById('revealed-cards'),
     verdictSub: document.getElementById('challenge-sub-verdict'),
-    ruleIcon: document.getElementById('logic-rule-icon'),
-    ruleName: document.getElementById('logic-rule-name'),
     punishment: document.getElementById('punishment-text'),
     hostActions: document.getElementById('host-modal-actions'),
     btnNextRound: document.getElementById('btn-next-round'),
@@ -137,6 +145,10 @@ function initApp() {
   els.arena.btnPlay.addEventListener('click', onPlayClick);
   els.arena.btnDoubt.addEventListener('click', () => sendAction({ type: 'doubt' }));
   els.arena.btnPass.addEventListener('click', () => sendAction({ type: 'pass' }));
+  document.getElementById('btn-view-cards').addEventListener('click', () => {
+    isSpectatorViewingCards = !isSpectatorViewingCards;
+    renderClientUI(clientState);
+  });
 }
 
 function setupPeer(creatingHost) {
@@ -436,17 +448,18 @@ function hostEvaluateChallenge(challengerId) {
     loser = challenger;
     isCorrectDoubt = false;
     verdictTitle = "NGHI NGỜ SAI!";
-    verdictSub = `${defender.name} đã nói THẬT!`;
+    verdictSub = `<span style="color: #ff4757;">${challenger.name}</span> nghi ngờ OAN cho <span style="color: #4ade80;">${defender.name} (Nói Thật)</span>!`;
   } else {
     loser = defender;
     isCorrectDoubt = true;
     verdictTitle = "NGHI NGỜ ĐÚNG!";
-    verdictSub = `${defender.name} đã NÓI DỐI!`;
+    verdictSub = `<span style="color: #4ade80;">${challenger.name}</span> đã lật tẩy <span style="color: #ff4757;">${defender.name} (Nói Dối)</span>!`;
   }
 
   hostState.challengeResult = {
     loserId: loser.id,
     defenderName: defender.name,
+    challengerName: challenger.name,
     cards: cards,
     verdictTitle: verdictTitle,
     verdictSub: verdictSub,
@@ -513,11 +526,21 @@ function renderClientUI(state) {
     // Rule Info
     els.arena.ruleIcon.innerHTML = `<img src="${SUIT_ICONS[ruleSuit]}" class="suit-img-small" />`;
     els.arena.ruleName.textContent = ruleObj.name;
+    els.arena.ruleDesc.textContent = ruleObj.desc;
+    
+    // Set theme color
+    els.arena.ruleName.className = 'neon-title-arena';
+    document.body.className = '';
+    if (ruleSuit === '♠️') { els.arena.ruleName.classList.add('theme-blue'); document.body.className = 'theme-blue'; }
+    else if (ruleSuit === '♣️') { els.arena.ruleName.classList.add('theme-green'); document.body.className = 'theme-green'; }
+    else if (ruleSuit === '♦️') { els.arena.ruleName.classList.add('theme-red'); document.body.className = 'theme-red'; }
+    else if (ruleSuit === '♥️') { els.arena.ruleName.classList.add('theme-purple'); document.body.className = 'theme-purple'; }
 
     // Current Player
     const activeP = players.find(p => p.id === currentPlayerId);
-    els.arena.playerName.textContent = activeP ? activeP.name : '---';
     const isMyTurn = (currentPlayerId === myPeerId);
+    if (isMyTurn) isSpectatorViewingCards = false;
+    els.arena.playerName.textContent = activeP ? (isMyTurn ? 'BẠN' : activeP.name) : '---';
 
     // Render Competitors
     els.arena.competitors.innerHTML = '';
@@ -541,11 +564,25 @@ function renderClientUI(state) {
       myHand.forEach((card, i) => {
         const d = document.createElement('div');
         const isRed = ['♦️','♥️'].includes(card.suit);
-        d.className = `playing-card ${isRed ? 'red' : 'black'} ${selectedHandIndices.includes(i) ? 'selected' : ''}`;
-        d.innerHTML = `<span class="card-rank">${card.rank}</span><img src="${SUIT_ICONS[card.suit]}" class="suit-img-card" />`;
-        // Can only click if it's my turn AND no previous action exists blocking me
+        
+        if (!isMyTurn && !isSpectatorViewingCards) {
+          let themeCard = '';
+          if (ruleSuit === '♠️') themeCard = 'card-blue';
+          else if (ruleSuit === '♣️') themeCard = 'card-green';
+          else if (ruleSuit === '♦️') themeCard = 'card-red';
+          else if (ruleSuit === '♥️') themeCard = 'card-purple';
+          d.className = `playing-card card-back ${themeCard}`;
+          d.innerHTML = ``;
+        } else {
+          d.className = `playing-card ${isRed ? 'red' : 'black'} ${selectedHandIndices.includes(i) ? 'selected' : ''}`;
+          d.style.backgroundImage = `url('${getCardImage(card)}')`;
+          d.style.backgroundSize = 'cover';
+          d.style.backgroundPosition = 'center';
+          d.innerHTML = ``;
+        }
+        // Can only click if it's my turn
         d.onclick = () => {
-          if (!isMyTurn || previousAction) return; 
+          if (!isMyTurn) return; 
           toggleSelectCard(i, d);
         };
         els.arena.handCards.appendChild(d);
@@ -553,6 +590,7 @@ function renderClientUI(state) {
     }
 
     // Previous Action & Reaction Box
+    const suitNamesMap = { '♠️':'BÍCH', '♣️':'CHUỒN', '♦️':'RÔ', '♥️':'CƠ' };
     if (previousAction) {
       els.arena.prevBox.classList.remove('hidden');
       const prevP = players.find(p => p.id === previousAction.id);
@@ -561,23 +599,25 @@ function renderClientUI(state) {
       els.arena.prevValue.innerHTML = `<img src="${SUIT_ICONS[previousAction.claimValue]}" class="suit-img-small" style="vertical-align: middle;" />`;
       els.arena.prevRuleName.textContent = ruleObj.name;
       
-      if (isMyTurn && !me.eliminated) {
-        els.arena.reactBtns.classList.remove('hidden');
-      } else {
-        els.arena.reactBtns.classList.add('hidden');
-      }
-      // If there's an action to react to, hide play form
-      els.arena.playForm.classList.add('hidden');
+      document.getElementById('arena-current-claim').textContent = `${previousAction.qty} LÁ ${suitNamesMap[previousAction.claimValue]}`;
+      els.arena.btnDoubt.disabled = false;
+      els.arena.btnDoubt.style.opacity = '1';
     } else {
       els.arena.prevBox.classList.add('hidden');
       
-      // If it's my turn and no reaction needed, show Play Form
-      if (isMyTurn && !me.eliminated) {
-        els.arena.playForm.classList.remove('hidden');
-        validatePlayButton(); // Re-check buttons
-      } else {
-        els.arena.playForm.classList.add('hidden');
-      }
+      document.getElementById('arena-current-claim').textContent = 'CHƯA ĐÁNH';
+      els.arena.btnDoubt.disabled = true;
+      els.arena.btnDoubt.style.opacity = '0.5';
+    }
+
+    // Toggle correct button wrapper based on whether it is my turn or not
+    if (isMyTurn && !me.eliminated) {
+      document.getElementById('active-player-actions').classList.remove('hidden');
+      document.getElementById('spectator-actions').classList.add('hidden');
+      validatePlayButton();
+    } else {
+      document.getElementById('active-player-actions').classList.add('hidden');
+      document.getElementById('spectator-actions').classList.remove('hidden');
     }
 
     // Modal Challenge handling
@@ -585,7 +625,9 @@ function renderClientUI(state) {
       els.modal.revealedCards.innerHTML = '';
       challengeResult.cards.forEach(c => {
         const isRed = ['♦️','♥️'].includes(c.suit);
-        els.modal.revealedCards.innerHTML += `<div class="playing-card ${isRed?'red':''}"><span class="card-rank">${c.rank}</span><img src="${SUIT_ICONS[c.suit]}" class="suit-img-card" /></div>`;
+        els.modal.revealedCards.innerHTML += `
+        <div class="playing-card ${isRed?'red':''}" style="background-image: url('${getCardImage(c)}'); background-size: cover; background-position: center;">
+        </div>`;
       });
       
       if (challengeResult.isCorrectDoubt) {
@@ -596,12 +638,8 @@ function renderClientUI(state) {
 
       els.modal.alertPlayerName.textContent = challengeResult.defenderName.toUpperCase();
       els.modal.title.textContent = challengeResult.verdictTitle;
-      els.modal.verdictSub.textContent = challengeResult.verdictSub;
+      els.modal.verdictSub.innerHTML = challengeResult.verdictSub;
       
-      const suitNamesMap = { '♠️':'SPADES', '♣️':'CLUBS', '♦️':'DIAMOND', '♥️':'HEART' };
-      els.modal.ruleIcon.innerHTML = `<img src="${SUIT_ICONS[ruleSuit]}" class="suit-img-large" />`;
-      els.modal.ruleName.textContent = `${suitNamesMap[ruleSuit]} (${ruleObj.name.toUpperCase()})`;
-
       const loserP = players.find(p => p.id === challengeResult.loserId);
       els.modal.punishment.innerHTML = `<strong>Phạt ${loserP.name}:</strong><br/><span style="color: #fff;">${ruleObj.desc}</span>`;
 
@@ -649,9 +687,9 @@ function validatePlayButton() {
 
   els.arena.btnPlay.disabled = !isValid;
   if(!isValid && selectedHandIndices.length > 0) {
-    els.arena.btnPlay.textContent = rule.exactQty ? `Vui lòng chọn ĐÚNG ${rule.exactQty} lá` : `Chọn TỐI THIỂU ${rule.minQty} lá`;
+    els.arena.btnPlay.innerHTML = rule.exactQty ? `Vui lòng chọn ĐÚNG ${rule.exactQty} lá` : `Chọn TỐI THIỂU ${rule.minQty} lá`;
   } else {
-    els.arena.btnPlay.textContent = "Hạ Bài";
+    els.arena.btnPlay.innerHTML = 'RA BÀI <img src="image/tabler_play-card-filled.svg" alt="card" style="width: 18px; vertical-align: middle; margin-left: 5px; opacity: ' + (isValid ? '1' : '0.5') + '">';
   }
 }
 

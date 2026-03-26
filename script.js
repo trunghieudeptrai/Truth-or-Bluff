@@ -164,10 +164,19 @@ function setupPeer(creatingHost) {
 
   els.home.status.textContent = 'Đang kết nối server...';
   
-  // Create a 5 char random ID for host, or null for client
-  const customId = isHost ? Math.random().toString(36).substring(2, 7) : null;
-  
-  peer = new Peer(customId);
+  const peerConfig = {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:global.stun.twilio.com:3478' }
+      ]
+    }
+  };
+  if (isHost) {
+    peer = new Peer(Math.random().toString(36).substring(2, 7), peerConfig);
+  } else {
+    peer = new Peer(peerConfig);
+  }
 
   peer.on('open', (id) => {
     myPeerId = id;

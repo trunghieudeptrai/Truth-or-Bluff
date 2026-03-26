@@ -604,9 +604,9 @@ function renderClientUI(state) {
     const suitNamesMap = { '♠️':'BÍCH', '♣️':'CHUỒN', '♦️':'RÔ', '♥️':'CƠ' };
     if (previousAction) {
       els.arena.prevBox.classList.remove('hidden');
-      const prevP = players[previousAction.idx];
+      const prevP = players.find(p => p.id === previousAction.id);
       const prevName = prevP ? prevP.name.toUpperCase() : 'AI ĐÓ';
-      const qty = previousAction.cardsPlayed ? previousAction.cardsPlayed.length : previousAction.qty;
+      const qty = previousAction.qty;
       
       els.arena.prevPlayer.textContent = prevName;
       els.arena.prevQty.textContent = qty;

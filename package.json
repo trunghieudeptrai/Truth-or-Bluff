@@ -1,0 +1,11 @@
+{
+  "name": "truth-or-bluff",
+  "version": "1.0.0",
+  "description": "Truth or Bluff Game",
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

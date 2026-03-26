@@ -636,7 +636,7 @@ function renderClientUI(state) {
         els.modal.contentBox.className = 'modal-alert-content theme-red'; // Red
       }
 
-      els.modal.alertPlayerName.textContent = challengeResult.defenderName.toUpperCase();
+      els.modal.alertPlayerName.textContent = challengeResult.challengerName.toUpperCase();
       els.modal.title.textContent = challengeResult.verdictTitle;
       els.modal.verdictSub.innerHTML = challengeResult.verdictSub;
       

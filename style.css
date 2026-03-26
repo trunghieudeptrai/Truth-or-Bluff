@@ -401,7 +401,6 @@ input[type="text"]:focus, select:focus { border-color: var(--primary); }
    NEW ARENA LAYOUT (MOCKUP)
    ========================================= */
 .arena-layout-new {
-  display: flex !important;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;

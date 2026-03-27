@@ -177,18 +177,16 @@
     <!-- CHALLENGE MODAL -->
     <div id="challenge-modal" class="modal-overlay">
       <div id="modal-alert-content" class="modal-alert-content">
-        <!-- Top Pill -->
-        <div class="alert-pill">
-          <span class="alert-icon">⚠️</span> <span id="alert-player-name">GAME LOGIC ALERT</span>
-        </div>
+        <!-- New Challenge Headers -->
+        <div id="challenger-name-ui" class="text-center font-bold text-lg mb-05" style="color: #fff; letter-spacing: 1px; margin-bottom: -5px; z-index: 2;">NGƯỜI CHƠI A</div>
         
         <!-- Glow Title -->
-        <h1 id="challenge-verdict-title" class="neon-title text-center">NGHI NGỜ ĐÚNG!</h1>
+        <h1 id="challenge-verdict-title" class="neon-title text-center" style="border: none !important; margin-bottom: 5px;">NGHI NGỜ ĐÚNG</h1>
+        
+        <div id="defender-name-ui" class="text-center font-bold text-lg mb-1" style="color: #fff; letter-spacing: 1px;">NGƯỜI CHƠI B</div>
 
         <!-- Revealed Cards -->
         <div id="revealed-cards" class="cards-row mb-1"></div>
-        
-        <p id="challenge-sub-verdict" class="text-center bold mb-1 text-lg"></p>
         
         <!-- Logic Card -->
         <div class="logic-card" id="logic-card-box">

@@ -115,10 +115,10 @@ const els = {
   modal: {
     container: document.getElementById('challenge-modal'),
     contentBox: document.getElementById('modal-alert-content'),
-    alertPlayerName: document.getElementById('alert-player-name'),
+    challengerNameUI: document.getElementById('challenger-name-ui'),
     title: document.getElementById('challenge-verdict-title'),
+    defenderNameUI: document.getElementById('defender-name-ui'),
     revealedCards: document.getElementById('revealed-cards'),
-    verdictSub: document.getElementById('challenge-sub-verdict'),
     punishment: document.getElementById('punishment-text'),
     hostActions: document.getElementById('host-modal-actions'),
     btnNextRound: document.getElementById('btn-next-round'),
@@ -564,6 +564,8 @@ function hostEvaluateChallenge(challengerId) {
   hostState.challengeResult = {
     loserId: loser.id,
     winnerId: winner.id,
+    defenderId: defender.id,
+    challengerId: challenger.id,
     defenderName: defender.name,
     challengerName: challenger.name,
     cards: cards,
@@ -788,8 +790,7 @@ function renderClientUI(state) {
       // Challenge Status
       els.modal.container.classList.add('active');
       
-      const isLoser = challengeResult.loserId === myPeerId;
-      const isWinner = challengeResult.winnerId === myPeerId;
+      const isCorrect = challengeResult.isCorrectDoubt;
       
       // Strip any aggressive inline styles from previous iterations
       if (els.modal.contentBox) els.modal.contentBox.style.borderColor = '';
@@ -798,30 +799,28 @@ function renderClientUI(state) {
         els.modal.title.style.borderBottomColor = '';
         els.modal.title.style.textShadow = '';
       }
-      const tagEl = els.modal.alertPlayerName.parentElement;
-      if (tagEl) {
-        tagEl.style.borderColor = '';
-        tagEl.style.color = '';
-      }
       if (els.modal.btnNextRound) {
         els.modal.btnNextRound.style.backgroundColor = '';
         els.modal.btnNextRound.style.color = '';
         els.modal.btnNextRound.style.boxShadow = '';
       }
       
-      // Assign native CSS themes
+      // Assign native CSS themes strictly to Green/Red based on correct doubt logic
       els.modal.contentBox.className = 'modal-alert-content'; // Default Green Native
-      if (isLoser) {
+      if (!isCorrect) {
         els.modal.contentBox.classList.add('theme-red');
-      } else if (isWinner) {
-        // Keeps default green
-      } else {
-        els.modal.contentBox.classList.add('theme-blue');
       }
 
-      els.modal.alertPlayerName.textContent = challengeResult.challengerName.toUpperCase();
-      els.modal.title.textContent = challengeResult.verdictTitle;
-      els.modal.verdictSub.innerHTML = challengeResult.verdictSub;
+      let chalName = challengeResult.challengerName.toUpperCase();
+      let defName = challengeResult.defenderName.toUpperCase();
+      
+      if (challengeResult.challengerId === myPeerId) chalName += ' (BẠN)';
+      else if (challengeResult.defenderId === myPeerId) defName += ' (BẠN)';
+      
+      if (els.modal.challengerNameUI) els.modal.challengerNameUI.textContent = chalName;
+      if (els.modal.defenderNameUI) els.modal.defenderNameUI.textContent = defName;
+      
+      els.modal.title.textContent = challengeResult.verdictTitle.replace('!', ''); // Match mockup borderless and exclamationless
       
       els.modal.punishment.innerHTML = challengeResult.punishmentHtml;
 

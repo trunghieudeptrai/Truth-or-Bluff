@@ -849,9 +849,10 @@ function renderClientUI(state) {
     if (challengeResult) {
       els.modal.revealedCards.innerHTML = '';
       challengeResult.cards.forEach(c => {
-        const isRed = ['♦️','♥️', 'joker_red'].includes(c.suit);
+        const isRed = ['♦️','♥️', 'joker_red'].includes(c.suit) || c.isFakeJoker;
+        const imgPath = c.isFakeJoker ? 'image/card/Joker card red.png' : getCardImage(c);
         els.modal.revealedCards.innerHTML += `
-        <div class="playing-card ${isRed?'red':''}" style="background-image: url('${getCardImage(c)}'); background-size: cover; background-position: center;">
+        <div class="playing-card ${isRed?'red':''}" style="background-image: url('${imgPath}'); background-size: cover; background-position: center;">
         </div>`;
       });
       

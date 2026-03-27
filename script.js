@@ -587,12 +587,12 @@ function hostEvaluateChallenge(challengerId) {
   const challengerHasRealJoker = challenger.hand.some(c => c.id === 'J_♥️' && !c.isFakeJoker);
   
   if (hasFakeJoker && challengerHasRealJoker) {
-    // Red Joker Illusion Trap activates overriding normal truth evaluation
-    loser = challenger;
-    isCorrectDoubt = false;
-    verdictTitle = "NGHI NGỜ SAI!";
-    verdictSub = `<span style="color: #4ade80;">${defender.name}</span> đã bẫy được <span style="color: #ff4757;">${challenger.name}</span> bằng Ảo Ảnh J♥️!`;
-    punishmentHtml = `<strong>Bẫy Ảo Ảnh Joker Đỏ:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">BỊ PHẠT ĐÚNG 4 LY!</span>`;
+    // Red Joker Illusion Trap backfires! Defender gets caught by the real holder!
+    loser = defender;
+    isCorrectDoubt = true; // Challenger is correct
+    verdictTitle = "LỘ DIỆN ẢO ẢNH!";
+    verdictSub = `<span style="color: #4ade80;">${challenger.name}</span> dùng J♥️ thật để đập tan ảo ảnh của <span style="color: #ff4757;">${defender.name} (Joker Đỏ)</span>!`;
+    punishmentHtml = `<strong>Bị Real J♥️ Bắt Tại Trận:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">KẺ MẠO DANH BỊ PHẠT ĐÚNG 4 LY!</span>`;
   } else if (hasBlackJoker) {
     isTruth = false; // Always fail if Black Joker is caught
     loser = defender;
@@ -651,10 +651,13 @@ function renderClientUI(state) {
   if (!challengeResult) {
     els.modal.container.classList.remove('active');
     selectedHandIndices = [];
+  } else {
+    window.hasMorphedJokerRed = false; // Reset morph state for next round
   }
 
   // 1. LOBBY STATE
   if (status === 'lobby') {
+    window.hasMorphedJokerRed = false;
     els.lobby.list.innerHTML = '';
     players.forEach(p => {
       els.lobby.list.innerHTML += `<li><span>${p.name} ${p.id===myPeerId?'(Bạn)':''}</span></li>`;
@@ -781,8 +784,18 @@ function renderClientUI(state) {
           d.className = `playing-card card-back ${themeCard}`;
           d.innerHTML = ``;
         } else {
-          d.className = `playing-card ${isRed ? 'red' : 'black'} ${selectedHandIndices.includes(i) ? 'selected' : ''}`;
-          d.style.backgroundImage = `url('${getCardImage(card)}')`;
+          let cardImage = getCardImage(card);
+          let morphClass = '';
+          if (ruleSuit === '♥️' && card.suit === 'joker_red') {
+            cardImage = 'image/card/Joker heart card red.png';
+            if (!window.hasMorphedJokerRed) {
+              morphClass = 'morph-effect';
+              window.hasMorphedJokerRed = true;
+            }
+          }
+          
+          d.className = `playing-card ${isRed ? 'red' : 'black'} ${selectedHandIndices.includes(i) ? 'selected' : ''} ${morphClass}`;
+          d.style.backgroundImage = `url('${cardImage}')`;
           d.style.backgroundSize = 'cover';
           d.style.backgroundPosition = 'center';
           d.innerHTML = ``;

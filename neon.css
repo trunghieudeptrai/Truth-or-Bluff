@@ -144,3 +144,14 @@
   color: #000;
   box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
 }
+
+/* Joker Card Transformation Animation */
+@keyframes morphToJHeart {
+  0% { transform: scale(1) rotateY(0deg); opacity: 0.5; filter: brightness(1) sepia(0); }
+  30% { transform: scale(1.1) rotateY(90deg); opacity: 0; filter: brightness(2) drop-shadow(0 0 20px #ff4757); }
+  60% { transform: scale(1.2) rotateY(270deg); opacity: 0; filter: brightness(2) drop-shadow(0 0 20px #ff4757); }
+  100% { transform: scale(1) rotateY(360deg); opacity: 1; filter: brightness(1); }
+}
+.morph-effect {
+  animation: morphToJHeart 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}

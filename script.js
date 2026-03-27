@@ -691,8 +691,12 @@ function renderClientUI(state) {
       const isActiveTurn = p.id === currentPlayerId;
       const highlightClass = isActiveTurn && !isBlackJokerActive ? 'active-turn' : '';
       
+      let badgeName = p.name;
+      if (isBlackJokerActive) badgeName = '?????';
+      if (p.id === myPeerId) badgeName += ' (BẠN)';
+      
       c.className = `competitor-badge ${p.eliminated ? 'eliminated' : ''} ${highlightClass}`;
-      c.innerHTML = `<span>${p.name}</span> <span class="card-count">${p.cardCount} lá</span>`;
+      c.innerHTML = `<span>${badgeName}</span> <span class="card-count">${p.cardCount} lá</span>`;
       els.arena.competitors.appendChild(c);
     });
 
@@ -897,7 +901,7 @@ function openJokerTargetModal() {
   validTargets.forEach(p => {
     const btn = document.createElement('button');
     btn.className = 'btn-neon w-100';
-    btn.textContent = p.name;
+    btn.textContent = clientState.isBlackJokerActive ? `????? (${p.cardCount} lá)` : p.name;
     btn.onclick = () => sendPlayAction(p.id);
     els.joker.targetList.appendChild(btn);
   });

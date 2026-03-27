@@ -464,7 +464,19 @@ function handleClientAction(clientId, data) {
     // Check Black Joker sneaky push
     if (played.length === 2 && played.some(c => c.suit === 'joker_black')) {
       const accompanyingCard = played.find(c => c.suit !== 'joker_black');
-      const opponents = hostState.players.filter(p => !p.eliminated && p.id !== cp.id);
+      
+      // Predict next player to definitively exclude them from receiving the pushed card
+      let nextIdx = hostState.currentPlayerIdx;
+      let limit = 0;
+      do {
+        nextIdx = (nextIdx + 1) % hostState.players.length;
+        limit++;
+      } while (hostState.players[nextIdx].eliminated && limit < 15);
+      const nextPlayerId = hostState.players[nextIdx].id;
+
+      // Filter out self and the immediate next player
+      const opponents = hostState.players.filter(p => !p.eliminated && p.id !== cp.id && p.id !== nextPlayerId);
+      
       if (opponents.length > 0 && accompanyingCard) {
         const targetOpponent = opponents[Math.floor(Math.random() * opponents.length)];
         targetOpponent.hand.push(accompanyingCard); // Push to array

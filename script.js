@@ -805,10 +805,17 @@ function renderClientUI(state) {
         els.modal.btnNextRound.style.boxShadow = '';
       }
       
-      // Assign native CSS themes strictly to Green/Red based on correct doubt logic
+      const isLoser = challengeResult.loserId === myPeerId;
+      const isWinner = challengeResult.winnerId === myPeerId;
+      
+      // Assign native CSS themes
       els.modal.contentBox.className = 'modal-alert-content'; // Default Green Native
-      if (!isCorrect) {
+      if (isLoser) {
         els.modal.contentBox.classList.add('theme-red');
+      } else if (isWinner) {
+        // Keeps default green
+      } else {
+        els.modal.contentBox.classList.add('theme-white');
       }
 
       let chalName = challengeResult.challengerName.toUpperCase();

@@ -127,24 +127,20 @@
   color: #666;
 }
 
-/* Bystander Theme (Blue) */
-.theme-blue .alert-pill {
-  background: rgba(0, 210, 255, 0.15);
-  border-color: rgba(0, 210, 255, 0.4);
-  color: #00d2ff;
+/* Bystander Theme (White) */
+.theme-white .neon-title {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 20px rgba(255, 255, 255, 0.4);
+  border-bottom-color: #fff;
 }
-.theme-blue .neon-title {
-  color: #00d2ff;
-  text-shadow: 0 0 10px rgba(0, 210, 255, 0.6), 0 0 20px rgba(0, 210, 255, 0.4);
-  border-bottom-color: #00d2ff;
+.theme-white .logic-card {
+  border-left-color: #fff;
 }
-.theme-blue .logic-card {
-  border-left-color: #00d2ff;
+.theme-white .logic-icon {
+  color: #fff;
 }
-.theme-blue .logic-icon {
-  color: #00d2ff;
-}
-.theme-blue .btn-neon {
-  background: #00d2ff;
-  box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+.theme-white .btn-neon {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
 }

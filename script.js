@@ -310,6 +310,7 @@ function broadcastState() {
 
   const rule = hostState.ruleSuit ? RULES[hostState.ruleSuit] : null;
   const currentP = hostState.players[hostState.currentPlayerIdx];
+  const isBlackJokerActive = hostState.players.some(p => !p.eliminated && p.hand.some(c => c.suit === 'joker_black'));
 
   hostState.players.forEach(p => {
     const statePacket = {
@@ -324,7 +325,8 @@ function broadcastState() {
         qty: hostState.previousAction.cardsPlayed.length,
         claimValue: hostState.previousAction.claimValue
       } : null,
-      challengeResult: hostState.challengeResult
+      challengeResult: hostState.challengeResult,
+      isBlackJokerActive: isBlackJokerActive
     };
 
     if (p.id === myPeerId) {
@@ -582,7 +584,7 @@ function hostResolveChallenge() {
 // ============== CLIENT UI RENDERER ==============
 
 function renderClientUI(state) {
-  const { status, players, myHand, ruleSuit, ruleObj, currentPlayerId, previousAction, challengeResult } = state;
+  const { status, players, myHand, ruleSuit, ruleObj, currentPlayerId, previousAction, challengeResult, isBlackJokerActive } = state;
   clientState = state; // Save local cache
 
   // Ensure modal closes correctly when a new action or round starts
@@ -672,7 +674,12 @@ function renderClientUI(state) {
     const activeP = players.find(p => p.id === currentPlayerId);
     const isMyTurn = (currentPlayerId === myPeerId);
     if (isMyTurn) isSpectatorViewingCards = false;
-    els.arena.playerName.textContent = activeP ? (isMyTurn ? 'BẠN' : activeP.name) : '---';
+    
+    let displayName = activeP ? activeP.name : '---';
+    if (isBlackJokerActive && activeP) displayName = '?????';
+    if (isMyTurn) displayName += ' (BẠN)';
+    
+    els.arena.playerName.textContent = displayName;
 
     // Render Competitors
     els.arena.competitors.innerHTML = '';
@@ -680,7 +687,11 @@ function renderClientUI(state) {
     players.forEach(p => {
       if (p.id === myPeerId) me = p;
       const c = document.createElement('div');
-      c.className = `competitor-badge ${p.eliminated ? 'eliminated' : ''} ${p.id === currentPlayerId ? 'active-turn' : ''}`;
+      
+      const isActiveTurn = p.id === currentPlayerId;
+      const highlightClass = isActiveTurn && !isBlackJokerActive ? 'active-turn' : '';
+      
+      c.className = `competitor-badge ${p.eliminated ? 'eliminated' : ''} ${highlightClass}`;
       c.innerHTML = `<span>${p.name}</span> <span class="card-count">${p.cardCount} lá</span>`;
       els.arena.competitors.appendChild(c);
     });
@@ -726,7 +737,9 @@ function renderClientUI(state) {
     if (previousAction) {
       els.arena.prevBox.classList.remove('hidden');
       const prevP = players.find(p => p.id === previousAction.id);
-      const prevName = prevP ? prevP.name.toUpperCase() : 'AI ĐÓ';
+      let prevName = prevP ? prevP.name.toUpperCase() : 'AI ĐÓ';
+      if (isBlackJokerActive) prevName = '?????';
+      
       const qty = previousAction.qty;
       
       els.arena.prevPlayer.textContent = prevName;

@@ -855,26 +855,19 @@ function renderClientUI(state) {
       let chalName = challengeResult.challengerName.toUpperCase();
       let defName = challengeResult.defenderName.toUpperCase();
       
+      if (challengeResult.challengerId === myPeerId) chalName += ' (BẠN)';
+      else if (challengeResult.defenderId === myPeerId) defName += ' (BẠN)';
+      
       const isChallenger = challengeResult.challengerId === myPeerId;
       const isDefender = challengeResult.defenderId === myPeerId;
       
-      let topText = '';
-      let bottomText = '';
-
-      if (isChallenger) {
-        topText = chalName + ' (BẠN)';
-        bottomText = defName;
-      } else if (isDefender) {
-        topText = defName + ' (BẠN)';
-        bottomText = chalName;
-      } else {
-        // Bystander
-        topText = chalName + ' (NGƯỜI BẮT LỖI)';
-        bottomText = defName + ' (NGƯỜI BỊ BẮT)';
+      if (!isChallenger && !isDefender) {
+        chalName += ' (NGƯỜI BẮT LỖI)';
+        defName += ' (NGƯỜI BỊ BẮT)';
       }
       
-      if (els.modal.challengerNameUI) els.modal.challengerNameUI.textContent = topText;
-      if (els.modal.defenderNameUI) els.modal.defenderNameUI.textContent = bottomText;
+      if (els.modal.challengerNameUI) els.modal.challengerNameUI.textContent = chalName;
+      if (els.modal.defenderNameUI) els.modal.defenderNameUI.textContent = defName;
       
       els.modal.title.textContent = challengeResult.verdictTitle.replace('!', ''); // Match mockup borderless and exclamationless
       

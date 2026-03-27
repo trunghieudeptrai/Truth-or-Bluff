@@ -559,8 +559,11 @@ function hostEvaluateChallenge(challengerId) {
     punishmentHtml = `<strong>Hình phạt đặc biệt cho Joker Đen:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">BỊ PHẠT ĐÚNG 3 LY!</span>`;
   }
 
+  const winner = (loser.id === challenger.id) ? defender : challenger;
+
   hostState.challengeResult = {
     loserId: loser.id,
+    winnerId: winner.id,
     defenderName: defender.name,
     challengerName: challenger.name,
     cards: cards,
@@ -782,10 +785,21 @@ function renderClientUI(state) {
         </div>`;
       });
       
-      if (challengeResult.isCorrectDoubt) {
-        els.modal.contentBox.className = 'modal-alert-content'; // Green (default)
-      } else {
-        els.modal.contentBox.className = 'modal-alert-content theme-red'; // Red
+      // Challenge Status
+      els.modal.container.classList.add('active');
+      
+      const isLoser = challengeResult.loserId === myPeerId;
+      const isWinner = challengeResult.winnerId === myPeerId;
+      
+      let themeColor = '#00d2ff'; // Default neutral color (blue/bystander)
+      if (isLoser) themeColor = '#ff4757'; // Red
+      else if (isWinner) themeColor = '#4ade80'; // Green
+
+      if (els.modal.contentBox) els.modal.contentBox.style.borderColor = themeColor;
+      if (els.modal.title) {
+        els.modal.title.style.color = themeColor;
+        els.modal.title.style.borderBottomColor = themeColor;
+        els.modal.title.style.textShadow = `0 0 10px ${themeColor}`;
       }
 
       els.modal.alertPlayerName.textContent = challengeResult.challengerName.toUpperCase();

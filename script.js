@@ -461,8 +461,30 @@ function handleClientAction(clientId, data) {
       cp.hand.splice(idx, 1);
     });
 
+    const isBlackJokerSuicide = played.length === 1 && played[0].suit === 'joker_black';
+
+    if (isBlackJokerSuicide) {
+      // INSTANT PUNISHMENT
+      const rule = RULES[data.claimValue] || RULES[hostState.ruleSuit];
+      hostState.challengeResult = {
+        loserId: cp.id,
+        winnerId: 'system',
+        defenderId: cp.id,
+        challengerId: 'system',
+        defenderName: cp.name,
+        challengerName: 'HỆ THỐNG',
+        cards: played,
+        verdictTitle: "TỰ HỦY",
+        verdictSub: "",
+        isCorrectDoubt: true,
+        punishmentHtml: `<strong>Hình phạt bắt buộc cho Joker Đen:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">BỊ PHẠT ĐÚNG 3 LY!</span>`
+      };
+      broadcastState();
+      return; 
+    }
+
     // Check Black Joker sneaky push
-    if (played.length === 2 && played.some(c => c.suit === 'joker_black')) {
+    if (!isBlackJokerSuicide && played.length === 2 && played.some(c => c.suit === 'joker_black')) {
       const accompanyingCard = played.find(c => c.suit !== 'joker_black');
       
       // Predict next player to definitively exclude them from receiving the pushed card
@@ -900,6 +922,12 @@ function validatePlayButton() {
   if (rule.exactQty > 0 && selectedHandIndices.length !== rule.exactQty) isValid = false;
   if (rule.minQty > 0 && selectedHandIndices.length < rule.minQty) isValid = false;
 
+  // ALL-IN Bypass: If player doesn't have enough cards to meet constraints, allow playing all remaining cards
+  if (clientState.myHand.length > 0 && selectedHandIndices.length === clientState.myHand.length) {
+    if (rule.exactQty > 0 && clientState.myHand.length < rule.exactQty) isValid = true;
+    if (rule.minQty > 0 && clientState.myHand.length < rule.minQty) isValid = true;
+  }
+
   els.arena.btnPlay.disabled = !isValid;
   if(!isValid && selectedHandIndices.length > 0) {
     els.arena.btnPlay.innerHTML = rule.exactQty ? `Vui lòng chọn ĐÚNG ${rule.exactQty} lá` : `Chọn TỐI THIỂU ${rule.minQty} lá`;
@@ -932,8 +960,10 @@ function onPlayClick() {
   
   if (hasBlackJoker) {
     if (selectedCards.length !== 2) {
-      alert("Joker Đen chỉ có thể dùng kèm với ĐÚNG 1 lá bài khác!");
-      return; 
+      if (!(clientState.myHand.length === 1 && selectedCards.length === 1)) {
+        alert("Joker Đen chỉ có thể dùng kèm với ĐÚNG 1 lá bài khác!");
+        return; 
+      }
     }
   }
 

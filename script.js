@@ -477,7 +477,7 @@ function handleClientAction(clientId, data) {
         verdictTitle: "TỰ HỦY",
         verdictSub: "",
         isCorrectDoubt: true,
-        punishmentHtml: `<strong>Hình phạt bắt buộc cho Joker Đen:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">BỊ PHẠT ĐÚNG 3 LY!</span>`
+        punishmentHtml: `<strong>Hình phạt bắt buộc cho Joker Đen:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">THUA CUỘC & BỊ PHẠT 3 LY!</span><br/><span style="font-size: 0.9rem; color: #aaa;">(Kết thúc vòng chơi)</span>`
       };
       broadcastState();
       return; 

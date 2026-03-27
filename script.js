@@ -463,6 +463,20 @@ function handleClientAction(clientId, data) {
 
     const isBlackJokerSuicide = played.length === 1 && played[0].suit === 'joker_black';
 
+    // Hearts Round Red Joker Transformation
+    if (hostState.ruleSuit === '♥️') {
+      played.forEach(c => {
+        if (c.suit === 'joker_red') {
+          c.originalSuit = 'joker_red';
+          c.suit = '♥️';
+          c.value = 'J';
+          c.id = 'J_♥️';
+          c.isWild = true;
+          c.isFakeJoker = true;
+        }
+      });
+    }
+
     if (isBlackJokerSuicide) {
       // INSTANT PUNISHMENT
       const rule = RULES[data.claimValue] || RULES[hostState.ruleSuit];
@@ -569,28 +583,35 @@ function hostEvaluateChallenge(challengerId) {
   let loser, verdictTitle, verdictSub, isCorrectDoubt;
   
   const hasBlackJoker = cards.some(c => c.suit === 'joker_black');
+  const hasFakeJoker = cards.some(c => c.isFakeJoker);
+  const challengerHasRealJoker = challenger.hand.some(c => c.id === 'J_♥️' && !c.isFakeJoker);
   
-  if (hasBlackJoker) {
+  if (hasFakeJoker && challengerHasRealJoker) {
+    // Red Joker Illusion Trap activates overriding normal truth evaluation
+    loser = challenger;
+    isCorrectDoubt = false;
+    verdictTitle = "NGHI NGỜ SAI!";
+    verdictSub = `<span style="color: #4ade80;">${defender.name}</span> đã bẫy được <span style="color: #ff4757;">${challenger.name}</span> bằng Ảo Ảnh J♥️!`;
+    punishmentHtml = `<strong>Bẫy Ảo Ảnh Joker Đỏ:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">BỊ PHẠT ĐÚNG 4 LY!</span>`;
+  } else if (hasBlackJoker) {
     isTruth = false; // Always fail if Black Joker is caught
     loser = defender;
     isCorrectDoubt = true;
     verdictTitle = "BẮT QUẢ TANG!";
     verdictSub = `<span style="color: #4ade80;">${challenger.name}</span> đã phát hiện <span style="color: #ff4757;">${defender.name} đánh lén Joker Đen!</span>`;
+    punishmentHtml = `<strong>Hình phạt đặc biệt cho Joker Đen:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">BỊ PHẠT ĐÚNG 3 LY!</span>`;
   } else if (isTruth) {
     loser = challenger;
     isCorrectDoubt = false;
     verdictTitle = "NGHI NGỜ SAI!";
     verdictSub = `<span style="color: #ff4757;">${challenger.name}</span> nghi ngờ OAN cho <span style="color: #4ade80;">${defender.name} (Nói Thật)</span>!`;
+    punishmentHtml = `<strong>Phạt ${loser.name}:</strong><br/><span style="color: #fff;">${rule.desc}</span>`;
   } else {
     loser = defender;
     isCorrectDoubt = true;
     verdictTitle = "NGHI NGỜ ĐÚNG!";
     verdictSub = `<span style="color: #4ade80;">${challenger.name}</span> đã lật tẩy <span style="color: #ff4757;">${defender.name} (Nói Dối)</span>!`;
-  }
-
-  let punishmentHtml = `<strong>Phạt ${loser.name}:</strong><br/><span style="color: #fff;">${rule.desc}</span>`;
-  if (hasBlackJoker) {
-    punishmentHtml = `<strong>Hình phạt đặc biệt cho Joker Đen:</strong><br/><span style="color: #ff4757; font-size: 1.3rem;">BỊ PHẠT ĐÚNG 3 LY!</span>`;
+    punishmentHtml = `<strong>Phạt ${loser.name}:</strong><br/><span style="color: #fff;">${rule.desc}</span>`;
   }
 
   const winner = (loser.id === challenger.id) ? defender : challenger;
@@ -936,8 +957,9 @@ function onPlayClick() {
   // Joker Constraints Validation
   const hasRedJoker = selectedCards.some(c => c.suit === 'joker_red');
   const hasBlackJoker = selectedCards.some(c => c.suit === 'joker_black');
+  const isHeartsRound = clientState.ruleSuit === '♥️';
   
-  if (hasRedJoker) {
+  if (hasRedJoker && !isHeartsRound) {
     if (selectedCards.length > 1) {
       alert("Joker Đỏ chỉ được hạ duy nhất 1 lá, KHÔNG kẹp chung với bài khác!");
       return; 

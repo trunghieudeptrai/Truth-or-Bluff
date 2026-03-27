@@ -801,6 +801,18 @@ function renderClientUI(state) {
         els.modal.title.style.borderBottomColor = themeColor;
         els.modal.title.style.textShadow = `0 0 10px ${themeColor}`;
       }
+      
+      const tagEl = els.modal.alertPlayerName.parentElement;
+      if (tagEl) {
+        tagEl.style.borderColor = themeColor;
+        tagEl.style.color = themeColor;
+      }
+      
+      if (els.modal.btnNextRound) {
+        els.modal.btnNextRound.style.backgroundColor = themeColor;
+        els.modal.btnNextRound.style.color = '#000';
+        els.modal.btnNextRound.style.boxShadow = `0 0 15px ${themeColor}88`; // subtle glow effect
+      }
 
       els.modal.alertPlayerName.textContent = challengeResult.challengerName.toUpperCase();
       els.modal.title.textContent = challengeResult.verdictTitle;

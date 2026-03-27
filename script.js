@@ -791,27 +791,32 @@ function renderClientUI(state) {
       const isLoser = challengeResult.loserId === myPeerId;
       const isWinner = challengeResult.winnerId === myPeerId;
       
-      let themeColor = '#00d2ff'; // Default neutral color (blue/bystander)
-      if (isLoser) themeColor = '#ff4757'; // Red
-      else if (isWinner) themeColor = '#4ade80'; // Green
-
-      if (els.modal.contentBox) els.modal.contentBox.style.borderColor = themeColor;
+      // Strip any aggressive inline styles from previous iterations
+      if (els.modal.contentBox) els.modal.contentBox.style.borderColor = '';
       if (els.modal.title) {
-        els.modal.title.style.color = themeColor;
-        els.modal.title.style.borderBottomColor = themeColor;
-        els.modal.title.style.textShadow = `0 0 10px ${themeColor}`;
+        els.modal.title.style.color = '';
+        els.modal.title.style.borderBottomColor = '';
+        els.modal.title.style.textShadow = '';
       }
-      
       const tagEl = els.modal.alertPlayerName.parentElement;
       if (tagEl) {
-        tagEl.style.borderColor = themeColor;
-        tagEl.style.color = themeColor;
+        tagEl.style.borderColor = '';
+        tagEl.style.color = '';
+      }
+      if (els.modal.btnNextRound) {
+        els.modal.btnNextRound.style.backgroundColor = '';
+        els.modal.btnNextRound.style.color = '';
+        els.modal.btnNextRound.style.boxShadow = '';
       }
       
-      if (els.modal.btnNextRound) {
-        els.modal.btnNextRound.style.backgroundColor = themeColor;
-        els.modal.btnNextRound.style.color = '#000';
-        els.modal.btnNextRound.style.boxShadow = `0 0 15px ${themeColor}88`; // subtle glow effect
+      // Assign native CSS themes
+      els.modal.contentBox.className = 'modal-alert-content'; // Default Green Native
+      if (isLoser) {
+        els.modal.contentBox.classList.add('theme-red');
+      } else if (isWinner) {
+        // Keeps default green
+      } else {
+        els.modal.contentBox.classList.add('theme-blue');
       }
 
       els.modal.alertPlayerName.textContent = challengeResult.challengerName.toUpperCase();
